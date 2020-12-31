@@ -269,6 +269,50 @@ func Test_UpdateUser(t *testing.T) {
 				},
 				err: nil,
 			},
+			{
+				name: "successfully updates a valid email",
+				setup: func(db *gorm.DB) {
+					db.Save(&User{
+						ID:       id,
+						Name:     "Philip Fry",
+						Email:    "deliveryboy@panuccis.net",
+						Password: "WalkinOnSunshine1999!",
+					})
+				},
+				req: UpdateUserRequest{
+					ID:    id,
+					Email: "daffodil@shiny.com",
+				},
+				expected: User{
+					ID:    id,
+					Name:  "Philip Fry",
+					Email: "daffodil@shiny.com",
+				},
+				err: nil,
+			},
+			{
+				name: "successfully updates a valid name and email",
+				setup: func(db *gorm.DB) {
+					db.Save(&User{
+						ID:       id,
+						Name:     "Philip Fry",
+						Email:    "deliveryboy@panuccis.net",
+						Password: "WalkinOnSunshine1999!",
+					})
+				},
+				req: UpdateUserRequest{
+					ID:    id,
+					Name:  "Bender Rodriguez",
+					Email: "daffodil@shiny.com",
+				},
+				expected: User{
+					ID:    id,
+					Name:  "Bender Rodriguez",
+					Email: "daffodil@shiny.com",
+				},
+				err: nil,
+			},
+			// TODO password related tests
 		}
 
 		for _, c := range cases {

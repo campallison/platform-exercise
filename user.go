@@ -154,3 +154,7 @@ func UpdateUser(db *gorm.DB, req UpdateUserRequest) (User, error) {
 
 	return updated, nil
 }
+
+func DeleteUser(db *gorm.DB, req DeleteUserRequest) (User, error) {
+	return User{}, nil
+}
