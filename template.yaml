@@ -1,0 +1,55 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  platform-exercise
+  
+  Fender platform-exercise for Allison Hanna interview January 2021
+
+Globals:
+  Function:
+    Timeout: 5
+
+Resources:
+  CreateUserFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: create-user/
+      Handler: create-user
+      Runtime: go1.x
+      Tracing: Active
+      Events:
+        CatchAll:
+          Type: Api
+          Properties:
+            Path: /user
+            Method: POST
+      Environment:
+        Variables:
+          PARAM1: VALUE
+    ValidateEmailFunction:
+      Type: AWS::Serverless::Function
+      Properties:
+        CodeUri: validate-email/
+        Handler: validate-email
+        Runtime: go1.x
+        Tracing: Active
+        Events:
+          CatchAll:
+            Type: Api
+            Properties:
+              Path: /user/validate-email
+              Method: POST
+        Environment:
+          Variables:
+            PARAM1: VALUE
+
+Outputs:
+  HelloWorldAPI:
+    Description: "API Gateway endpoint URL for Prod environment for First Function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/hello/"
+  HelloWorldFunction:
+    Description: "First Lambda Function ARN"
+    Value: !GetAtt HelloWorldFunction.Arn
+  HelloWorldFunctionIamRole:
+    Description: "Implicit IAM Role created for Hello World function"
+    Value: !GetAtt HelloWorldFunctionRole.Arn
