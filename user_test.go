@@ -1,11 +1,10 @@
 package platform_exercise
 
 import (
-	"os"
 	"testing"
 
-	"github.com/campallison/platform-exercise/utils"
 	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"gorm.io/gorm"
 )
 
@@ -13,16 +12,8 @@ var runDBTests bool
 var postgresURL string
 
 func init() {
-	// DB_TEST can be set arbitrarily for testing. I usually set it to 1.
-	if os.Getenv("DB_TEST") == "" {
-		// If env is not set - skip init
-		return
-	}
-
-	if os.Getenv("DB_TEST") != "" {
-		runDBTests = true
-		postgresURL = PostgresURL
-	}
+	runDBTests = true
+	postgresURL = PostgresURL
 }
 
 func databaseTest(t *testing.T, handler func(database *gorm.DB)) {
@@ -33,22 +24,26 @@ func databaseTest(t *testing.T, handler func(database *gorm.DB)) {
 	handler(database)
 }
 
-func setup(t *testing.T, database *gorm.DB) {
-	if !runDBTests {
-		t.Skip("skipping database test, pass DB_TEST env to run")
-	}
-
-	clearDatabase(database)
-}
-
 func clearDatabase(database *gorm.DB) {
 	session := database.Session(&gorm.Session{AllowGlobalUpdate: true})
 	session.Unscoped().Delete(User{})
 }
 
+func AssertErrorsEqual(t *testing.T, expectedErr error, actualError error) {
+	if expectedErr != nil && !cmp.Equal(expectedErr, actualError, cmpopts.EquateErrors()) {
+		if actualError == nil {
+			t.Errorf("Got no error when '%s' was expected", expectedErr)
+		} else if expectedErr.Error() != actualError.Error() {
+			t.Errorf("Expected err to be '%s' but got '%s'", expectedErr, actualError)
+		}
+	} else if expectedErr == nil && actualError != nil {
+		t.Errorf("Expected no error but got '%v'", actualError)
+	}
+}
+
 func Test_CreateUser(t *testing.T) {
 	databaseTest(t, func(database *gorm.DB) {
-		setup(t, database)
+		clearDatabase(database)
 		strongPW := "s3tIt0nF!re&Play1tWithYourT33th"
 
 		cases := []struct {
@@ -141,18 +136,157 @@ func Test_CreateUser(t *testing.T) {
 
 		for _, c := range cases {
 			t.Run(c.name, func(t *testing.T) {
-				setup(t, database)
+				clearDatabase(database)
 				if c.setup != nil {
 					c.setup(database)
 				}
 
 				res, err := CreateUser(database, c.req)
-
-				utils.AssertErrorsEqual(t, c.err, err)
-
+				AssertErrorsEqual(t, c.err, err)
 				if diff := cmp.Diff(
-					c.expected.Name,
-					res.Name,
+					c.expected,
+					res,
+					cmpopts.IgnoreFields(User{}, "ID"),
+					cmpopts.IgnoreFields(User{}, "Password"),
+					cmpopts.IgnoreFields(User{}, "CreatedAt"),
+					cmpopts.IgnoreFields(User{}, "UpdatedAt"),
+					cmpopts.IgnoreFields(User{}, "DeletedAt"),
+				); diff != "" {
+					t.Errorf("\nUnexpected user (-want, +got)\n%s", diff)
+				}
+			})
+		}
+	})
+}
+
+func Test_UpdateUser(t *testing.T) {
+	databaseTest(t, func(database *gorm.DB) {
+		clearDatabase(database)
+		//strongPW := "s3tIt0nF!re&Play1tWithYourT33th"
+		id := "13a185dd-1c2e-4092-81cc-ec306d18b2bd"
+
+		cases := []struct {
+			name     string
+			setup    func(*gorm.DB)
+			req      UpdateUserRequest
+			expected User
+			err      error
+		}{
+			{
+				name: "should return an error if the requested user ID does not exist",
+				req: UpdateUserRequest{
+					ID:   id,
+					Name: "Philip Fry",
+				},
+				expected: User{},
+				err:      UserNotFoundError(id),
+			},
+			{
+				name: "should return empty user and no error if only ID is provided",
+				setup: func(db *gorm.DB) {
+					db.Save(&User{
+						ID:       id,
+						Name:     "Philip Fry",
+						Email:    "deliveryboy@panuccis.net",
+						Password: "WalkinOnSunshine1999",
+					})
+				},
+				req: UpdateUserRequest{
+					ID: id,
+				},
+				expected: User{},
+				err:      nil,
+			},
+			{
+				name: "does not allow invalid name",
+				setup: func(db *gorm.DB) {
+					db.Save(&User{
+						ID:       id,
+						Name:     "Philip Fry",
+						Email:    "deliveryboy@panuccis.net",
+						Password: "WalkinOnSunshine1999!",
+					})
+				},
+				req: UpdateUserRequest{
+					ID:   id,
+					Name: "!nv@lid Name",
+				},
+				expected: User{},
+				err:      InvalidNameError("!nv@lid Name"),
+			},
+			{
+				name: "does not allow new password if below strength threshold",
+				setup: func(db *gorm.DB) {
+					db.Save(&User{
+						ID:       id,
+						Name:     "Philip Fry",
+						Email:    "deliveryboy@panuccis.net",
+						Password: "WalkinOnSunshine1999!",
+					})
+				},
+				req: UpdateUserRequest{
+					ID:       id,
+					Password: "weak",
+				},
+				expected: User{},
+				err:      InsecurePasswordError(),
+			},
+			{
+				name: "returns an error if new email is invalid",
+				setup: func(db *gorm.DB) {
+					db.Save(&User{
+						ID:       id,
+						Name:     "Philip Fry",
+						Email:    "deliveryboy@panuccis.net",
+						Password: "WalkinOnSunshine1999!",
+					})
+				},
+				req: UpdateUserRequest{
+					ID:    id,
+					Email: "bender@isGreat",
+				},
+				expected: User{},
+				err:      CouldNotParseEmailError("bender@isGreat"),
+			},
+			{
+				name: "successfully updates a valid name",
+				setup: func(db *gorm.DB) {
+					db.Save(&User{
+						ID:       id,
+						Name:     "Philip Fry",
+						Email:    "deliveryboy@panuccis.net",
+						Password: "WalkinOnSunshine1999!",
+					})
+				},
+				req: UpdateUserRequest{
+					ID:   id,
+					Name: "Bender Rodriguez",
+				},
+				expected: User{
+					ID:    id,
+					Name:  "Bender Rodriguez",
+					Email: "deliveryboy@panuccis.net",
+				},
+				err: nil,
+			},
+		}
+
+		for _, c := range cases {
+			t.Run(c.name, func(t *testing.T) {
+				clearDatabase(database)
+				if c.setup != nil {
+					c.setup(database)
+				}
+
+				res, err := UpdateUser(database, c.req)
+				AssertErrorsEqual(t, c.err, err)
+				if diff := cmp.Diff(
+					c.expected,
+					res,
+					cmpopts.IgnoreFields(User{}, "Password"),
+					cmpopts.IgnoreFields(User{}, "CreatedAt"),
+					cmpopts.IgnoreFields(User{}, "UpdatedAt"),
+					cmpopts.IgnoreFields(User{}, "DeletedAt"),
 				); diff != "" {
 					t.Errorf("\nUnexpected user (-want, +got)\n%s", diff)
 				}
@@ -183,7 +317,7 @@ func Test_checkPasswordStrength(t *testing.T) {
 		t.Run(c.name, func(t *testing.T) {
 			res := checkPasswordStrength(c.input)
 
-			utils.AssertErrorsEqual(t, c.err, res)
+			AssertErrorsEqual(t, c.err, res)
 		})
 	}
 }

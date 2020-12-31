@@ -24,26 +24,6 @@ func CouldNotParseEmailError(email string) error {
 	return errors.New(fmt.Sprintf("unable to parse email %s", email))
 }
 
-func AliasedEmailError(email string) error {
-	return errors.New(fmt.Sprintf("invalid email %s, is aliased", email))
-}
-
-func ProhibitedEmailError(email string) error {
-	return errors.New(fmt.Sprintf("prohibited email %s, domain is disallowed", email))
-}
-
-func InsecurePasswordError() error {
-	return errors.New("insecure password")
-}
-
-func InvalidNameError(name string) error {
-	return errors.New(fmt.Sprintf("invalid name %s, contains disallowed characters", name))
-}
-
-func SaveUserToDBError(email string) error {
-	return errors.New(fmt.Sprintf("Error saving user with email %s. Unknown reason, but may already exist.", email))
-}
-
 func checkPasswordStrength(password string) (err error) {
 	if utils.PasswordStrength(password) < insecurePasswordThreshold {
 		err = InsecurePasswordError()
@@ -66,18 +46,18 @@ func isValidName(name string) bool {
 	return res
 }
 
-func validateEmail(email string) (bool, error) {
-	parsedEmail, err := utils.ParseEmail(email)
+func ValidateEmail(req ValidateEmailRequest) (bool, error) {
+	parsedEmail, err := utils.ParseEmail(req.Email)
 	if err != nil {
-		return false, CouldNotParseEmailError(email)
+		return false, CouldNotParseEmailError(req.Email)
 	}
 
 	if utils.IsAliasedEmail(parsedEmail.LocalPart) {
-		return false, AliasedEmailError(email)
+		return false, AliasedEmailError(req.Email)
 	}
 
 	if utils.IsKnownSpamEmail(parsedEmail) {
-		return false, ProhibitedEmailError(email)
+		return false, ProhibitedEmailError(req.Email)
 	}
 
 	return true, nil
@@ -92,7 +72,7 @@ func CreateUser(db *gorm.DB, req CreateUserRequest) (User, error) {
 
 	user.Name = req.Name
 
-	isValidEmail, err := validateEmail(req.Email)
+	isValidEmail, err := ValidateEmail(ValidateEmailRequest{Email: req.Email})
 	if err != nil {
 		return User{}, err
 	}
@@ -119,6 +99,58 @@ func CreateUser(db *gorm.DB, req CreateUserRequest) (User, error) {
 	return user, nil
 }
 
-func ValidateEmail(req ValidateEmailRequest) (bool, error) {
-	return validateEmail(req.Email)
+func UpdateUser(db *gorm.DB, req UpdateUserRequest) (User, error) {
+	// TODO implement token check in here
+	var existing User
+	if err := db.Where(`id = ?`, req.ID).First(&existing).Error; err != nil {
+		return existing, UserNotFoundError(req.ID)
+	}
+
+	if req.ID != "" &&
+		req.Name == "" &&
+		req.Email == "" &&
+		req.Password == "" {
+		return User{}, nil
+	}
+
+	if req.Name != "" && !isValidName(req.Name) {
+		return User{}, InvalidNameError(req.Name)
+	}
+
+	if req.Password != "" &&
+		utils.PasswordStrength(req.Password) < insecurePasswordThreshold {
+		return User{}, InsecurePasswordError()
+	}
+
+	hashedPW, err := HashPassword(req.Password)
+	if err != nil {
+		return User{}, err
+	}
+
+	if req.Email != "" {
+		if ok, err := ValidateEmail(ValidateEmailRequest{Email: req.Email}); !ok {
+			return User{}, err
+		}
+	}
+
+	fields := map[string]interface{}{}
+
+	if req.Name != "" {
+		fields["name"] = req.Name
+	}
+
+	if req.Password != "" {
+		fields["password"] = hashedPW
+	}
+
+	if req.Email != "" {
+		fields["email"] = req.Email
+	}
+
+	db.Model(&existing).Where(`id = ?`, req.ID).Updates(fields)
+
+	var updated User
+	db.Table("users").Where("id = ?", req.ID).First(&updated)
+
+	return updated, nil
 }
