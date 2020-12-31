@@ -1,8 +1,6 @@
 package platform_exercise
 
 import (
-	"errors"
-	"fmt"
 	"regexp"
 
 	"github.com/campallison/platform-exercise/utils"
@@ -20,13 +18,9 @@ const (
 	bcryptGenerationCost      = 14
 )
 
-func CouldNotParseEmailError(email string) error {
-	return errors.New(fmt.Sprintf("unable to parse email %s", email))
-}
-
 func checkPasswordStrength(password string) (err error) {
 	if utils.PasswordStrength(password) < insecurePasswordThreshold {
-		err = InsecurePasswordError()
+		err = utils.InsecurePasswordError()
 	}
 	return
 }
@@ -42,6 +36,7 @@ func HashPassword(password string) (string, error) {
 
 func isValidName(name string) bool {
 	regex := `^[^0-9_!¡?÷?¿/\\+=@#$%ˆ&*(){}|~<>;:[\]]{2,}$`
+	// credit: https://stackoverflow.com/questions/2385701/regular-expression-for-first-and-last-name#comment103416432_45871742
 	res, _ := regexp.MatchString(regex, name)
 	return res
 }
@@ -49,15 +44,15 @@ func isValidName(name string) bool {
 func ValidateEmail(req ValidateEmailRequest) (bool, error) {
 	parsedEmail, err := utils.ParseEmail(req.Email)
 	if err != nil {
-		return false, CouldNotParseEmailError(req.Email)
+		return false, utils.CouldNotParseEmailError(req.Email)
 	}
 
 	if utils.IsAliasedEmail(parsedEmail.LocalPart) {
-		return false, AliasedEmailError(req.Email)
+		return false, utils.AliasedEmailError(req.Email)
 	}
 
 	if utils.IsKnownSpamEmail(parsedEmail) {
-		return false, ProhibitedEmailError(req.Email)
+		return false, utils.ProhibitedEmailError(req.Email)
 	}
 
 	return true, nil
@@ -67,7 +62,7 @@ func CreateUser(db *gorm.DB, req CreateUserRequest) (User, error) {
 	var user User
 
 	if !isValidName(req.Name) {
-		return User{}, InvalidNameError(req.Name)
+		return User{}, utils.InvalidNameError(req.Name)
 	}
 
 	user.Name = req.Name
@@ -82,7 +77,7 @@ func CreateUser(db *gorm.DB, req CreateUserRequest) (User, error) {
 	}
 
 	if utils.PasswordStrength(req.Password) < insecurePasswordThreshold {
-		return User{}, InsecurePasswordError()
+		return User{}, utils.InsecurePasswordError()
 	}
 
 	hashedPW, err := HashPassword(req.Password)
@@ -93,7 +88,7 @@ func CreateUser(db *gorm.DB, req CreateUserRequest) (User, error) {
 	user.Password = hashedPW
 
 	if err := db.Save(&user).Error; err != nil {
-		return User{}, SaveUserToDBError(user.Email)
+		return User{}, utils.SaveUserToDBError(user.Email)
 	}
 
 	return user, nil
@@ -101,11 +96,6 @@ func CreateUser(db *gorm.DB, req CreateUserRequest) (User, error) {
 
 func UpdateUser(db *gorm.DB, req UpdateUserRequest) (User, error) {
 	// TODO implement token check in here
-	var existing User
-	if err := db.Where(`id = ?`, req.ID).First(&existing).Error; err != nil {
-		return existing, UserNotFoundError(req.ID)
-	}
-
 	if req.ID != "" &&
 		req.Name == "" &&
 		req.Email == "" &&
@@ -113,13 +103,18 @@ func UpdateUser(db *gorm.DB, req UpdateUserRequest) (User, error) {
 		return User{}, nil
 	}
 
+	var existing User
+	if err := db.Where(`id = ?`, req.ID).First(&existing).Error; err != nil {
+		return existing, utils.UserNotFoundError(req.ID)
+	}
+
 	if req.Name != "" && !isValidName(req.Name) {
-		return User{}, InvalidNameError(req.Name)
+		return User{}, utils.InvalidNameError(req.Name)
 	}
 
 	if req.Password != "" &&
 		utils.PasswordStrength(req.Password) < insecurePasswordThreshold {
-		return User{}, InsecurePasswordError()
+		return User{}, utils.InsecurePasswordError()
 	}
 
 	hashedPW, err := HashPassword(req.Password)
@@ -158,7 +153,7 @@ func UpdateUser(db *gorm.DB, req UpdateUserRequest) (User, error) {
 func DeleteUser(db *gorm.DB, req DeleteUserRequest) (User, error) {
 	var user User
 	if err := db.Where(`id = ?`, req.ID).First(&user).Error; err != nil {
-		return user, UserNotFoundError(req.ID)
+		return user, utils.UserNotFoundError(req.ID)
 	}
 
 	tx := db.Begin()
@@ -180,7 +175,7 @@ func DeleteUser(db *gorm.DB, req DeleteUserRequest) (User, error) {
 	db.Unscoped().Where("id = ?", user.ID).First(&user)
 	if user.ID == "" || !user.DeletedAt.Valid {
 		tx.Rollback()
-		return user, UserNotFoundError(user.ID)
+		return user, utils.UserNotFoundError(user.ID)
 	}
 
 	return user, nil

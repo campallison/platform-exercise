@@ -3,6 +3,7 @@ package platform_exercise
 import (
 	"testing"
 
+	"github.com/campallison/platform-exercise/utils"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"gorm.io/gorm"
@@ -29,18 +30,6 @@ func clearDatabase(database *gorm.DB) {
 	session.Unscoped().Delete(User{})
 }
 
-func AssertErrorsEqual(t *testing.T, expectedErr error, actualError error) {
-	if expectedErr != nil && !cmp.Equal(expectedErr, actualError, cmpopts.EquateErrors()) {
-		if actualError == nil {
-			t.Errorf("Got no error when '%s' was expected", expectedErr)
-		} else if expectedErr.Error() != actualError.Error() {
-			t.Errorf("Expected err to be '%s' but got '%s'", expectedErr, actualError)
-		}
-	} else if expectedErr == nil && actualError != nil {
-		t.Errorf("Expected no error but got '%v'", actualError)
-	}
-}
-
 func Test_CreateUser(t *testing.T) {
 	databaseTest(t, func(database *gorm.DB) {
 		clearDatabase(database)
@@ -61,7 +50,7 @@ func Test_CreateUser(t *testing.T) {
 					Password: strongPW,
 				},
 				expected: User{},
-				err:      CouldNotParseEmailError("leo@fender"),
+				err:      utils.CouldNotParseEmailError("leo@fender"),
 			},
 			{
 				name: "returns an error if email is aliased",
@@ -71,7 +60,7 @@ func Test_CreateUser(t *testing.T) {
 					Password: strongPW,
 				},
 				expected: User{},
-				err:      CouldNotParseEmailError("leo+tune@fender.com"),
+				err:      utils.CouldNotParseEmailError("leo+tune@fender.com"),
 			},
 			{
 				name: "returns an error if email is prohibited",
@@ -81,7 +70,7 @@ func Test_CreateUser(t *testing.T) {
 					Password: strongPW,
 				},
 				expected: User{},
-				err:      ProhibitedEmailError("nuge@trashmail.com"),
+				err:      utils.ProhibitedEmailError("nuge@trashmail.com"),
 			},
 			{
 				name: "returns an error if password is not strong enough",
@@ -91,7 +80,7 @@ func Test_CreateUser(t *testing.T) {
 					Password: "1234",
 				},
 				expected: User{},
-				err:      InsecurePasswordError(),
+				err:      utils.InsecurePasswordError(),
 			},
 			{
 				name: "returns an error if name is invalid",
@@ -101,7 +90,7 @@ func Test_CreateUser(t *testing.T) {
 					Password: "NowAmLeavingEarthForeverForNoRaisin",
 				},
 				expected: User{},
-				err:      InvalidNameError("I am the greetest!"),
+				err:      utils.InvalidNameError("I am the greetest!"),
 			},
 			{
 				name: "returns an error if save to db fails",
@@ -117,7 +106,7 @@ func Test_CreateUser(t *testing.T) {
 					Password: strongPW,
 				},
 				expected: User{},
-				err:      SaveUserToDBError("voodoochild@fire.com"),
+				err:      utils.SaveUserToDBError("voodoochild@fire.com"),
 			},
 			{
 				name: "successfully saves a user",
@@ -142,7 +131,7 @@ func Test_CreateUser(t *testing.T) {
 				}
 
 				res, err := CreateUser(database, c.req)
-				AssertErrorsEqual(t, c.err, err)
+				utils.AssertErrorsEqual(t, c.err, err)
 				if diff := cmp.Diff(
 					c.expected,
 					res,
@@ -178,7 +167,7 @@ func Test_UpdateUser(t *testing.T) {
 					Name: "Philip Fry",
 				},
 				expected: User{},
-				err:      UserNotFoundError(id),
+				err:      utils.UserNotFoundError(id),
 			},
 			{
 				name: "should return empty user and no error if only ID is provided",
@@ -211,7 +200,7 @@ func Test_UpdateUser(t *testing.T) {
 					Name: "!nv@lid Name",
 				},
 				expected: User{},
-				err:      InvalidNameError("!nv@lid Name"),
+				err:      utils.InvalidNameError("!nv@lid Name"),
 			},
 			{
 				name: "does not allow new password if below strength threshold",
@@ -228,7 +217,7 @@ func Test_UpdateUser(t *testing.T) {
 					Password: "weak",
 				},
 				expected: User{},
-				err:      InsecurePasswordError(),
+				err:      utils.InsecurePasswordError(),
 			},
 			{
 				name: "returns an error if new email is invalid",
@@ -245,7 +234,7 @@ func Test_UpdateUser(t *testing.T) {
 					Email: "bender@isGreat",
 				},
 				expected: User{},
-				err:      CouldNotParseEmailError("bender@isGreat"),
+				err:      utils.CouldNotParseEmailError("bender@isGreat"),
 			},
 			{
 				name: "successfully updates a valid name",
@@ -322,7 +311,7 @@ func Test_UpdateUser(t *testing.T) {
 				}
 
 				res, err := UpdateUser(database, c.req)
-				AssertErrorsEqual(t, c.err, err)
+				utils.AssertErrorsEqual(t, c.err, err)
 				if diff := cmp.Diff(
 					c.expected,
 					res,
@@ -354,7 +343,7 @@ func Test_DeleteUser(t *testing.T) {
 				name:     "returns an error if requested user ID is not found",
 				req:      DeleteUserRequest{ID: id},
 				expected: User{},
-				err:      UserNotFoundError(id),
+				err:      utils.UserNotFoundError(id),
 			},
 			{
 				name: "deletes a user successfully",
@@ -380,7 +369,7 @@ func Test_DeleteUser(t *testing.T) {
 				}
 
 				res, err := DeleteUser(database, c.req)
-				AssertErrorsEqual(t, c.err, err)
+				utils.AssertErrorsEqual(t, c.err, err)
 				if diff := cmp.Diff(
 					c.expected,
 					res,
@@ -405,7 +394,7 @@ func Test_checkPasswordStrength(t *testing.T) {
 		{
 			name:  "weak password returns an error",
 			input: "weak",
-			err:   InsecurePasswordError(),
+			err:   utils.InsecurePasswordError(),
 		},
 		{
 			name:  "acceptable password returns no error",
@@ -418,7 +407,7 @@ func Test_checkPasswordStrength(t *testing.T) {
 		t.Run(c.name, func(t *testing.T) {
 			res := checkPasswordStrength(c.input)
 
-			AssertErrorsEqual(t, c.err, res)
+			utils.AssertErrorsEqual(t, c.err, res)
 		})
 	}
 }

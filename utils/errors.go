@@ -1,9 +1,17 @@
-package platform_exercise
+package utils
 
 import (
 	"errors"
 	"fmt"
 )
+
+func CouldNotParseEmailError(email string) error {
+	return errors.New(fmt.Sprintf("unable to parse email %s", email))
+}
+
+func InvalidEmailError(email string) error {
+	return errors.New(fmt.Sprintf("invalid or malformed email %s", email))
+}
 
 func AliasedEmailError(email string) error {
 	return errors.New(fmt.Sprintf("invalid email %s, is aliased", email))

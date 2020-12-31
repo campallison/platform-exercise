@@ -1,8 +1,6 @@
 package utils
 
 import (
-	"errors"
-	"fmt"
 	"regexp"
 	"strings"
 
@@ -78,14 +76,6 @@ func IsKnownSpamEmail(email Email) bool {
 	}
 
 	return false
-}
-
-func AliasedEmailError(email string) error {
-	return errors.New(fmt.Sprintf("invalid email %s, contains alias", email))
-}
-
-func InvalidEmailError(email string) error {
-	return errors.New(fmt.Sprintf("invalid or malformed email %s", email))
 }
 
 func ParseEmail(email string) (Email, error) {
