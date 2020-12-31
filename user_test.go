@@ -162,7 +162,6 @@ func Test_CreateUser(t *testing.T) {
 func Test_UpdateUser(t *testing.T) {
 	databaseTest(t, func(database *gorm.DB) {
 		clearDatabase(database)
-		//strongPW := "s3tIt0nF!re&Play1tWithYourT33th"
 		id := "13a185dd-1c2e-4092-81cc-ec306d18b2bd"
 
 		cases := []struct {
@@ -323,6 +322,64 @@ func Test_UpdateUser(t *testing.T) {
 				}
 
 				res, err := UpdateUser(database, c.req)
+				AssertErrorsEqual(t, c.err, err)
+				if diff := cmp.Diff(
+					c.expected,
+					res,
+					cmpopts.IgnoreFields(User{}, "Password"),
+					cmpopts.IgnoreFields(User{}, "CreatedAt"),
+					cmpopts.IgnoreFields(User{}, "UpdatedAt"),
+					cmpopts.IgnoreFields(User{}, "DeletedAt"),
+				); diff != "" {
+					t.Errorf("\nUnexpected user (-want, +got)\n%s", diff)
+				}
+			})
+		}
+	})
+}
+
+func Test_DeleteUser(t *testing.T) {
+	databaseTest(t, func(database *gorm.DB) {
+		clearDatabase(database)
+		id := "13a185dd-1c2e-4092-81cc-ec306d18b2bd"
+
+		cases := []struct {
+			name     string
+			setup    func(*gorm.DB)
+			req      DeleteUserRequest
+			expected User
+			err      error
+		}{ //TODO basic functionality in, add auth
+			{
+				name:     "returns an error if requested user ID is not found",
+				req:      DeleteUserRequest{ID: id},
+				expected: User{},
+				err:      UserNotFoundError(id),
+			},
+			{
+				name: "deletes a user successfully",
+				setup: func(db *gorm.DB) {
+					db.Save(&User{
+						ID:       id,
+						Name:     "Ephemeral User",
+						Email:    "user@domain.com",
+						Password: "irrelevant",
+					})
+				},
+				req:      DeleteUserRequest{ID: id},
+				expected: User{},
+				err:      nil,
+			},
+		}
+
+		for _, c := range cases {
+			t.Run(c.name, func(t *testing.T) {
+				clearDatabase(database)
+				if c.setup != nil {
+					c.setup(database)
+				}
+
+				res, err := DeleteUser(database, c.req)
 				AssertErrorsEqual(t, c.err, err)
 				if diff := cmp.Diff(
 					c.expected,

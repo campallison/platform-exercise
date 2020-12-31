@@ -156,5 +156,32 @@ func UpdateUser(db *gorm.DB, req UpdateUserRequest) (User, error) {
 }
 
 func DeleteUser(db *gorm.DB, req DeleteUserRequest) (User, error) {
-	return User{}, nil
+	var user User
+	if err := db.Where(`id = ?`, req.ID).First(&user).Error; err != nil {
+		return user, UserNotFoundError(req.ID)
+	}
+
+	tx := db.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	if err := tx.Table("users").Where("id  = ?", user.ID).Delete(User{}).Error; err != nil {
+		tx.Rollback()
+		return User{}, err
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		return User{}, err
+	}
+
+	db.Unscoped().Where("id = ?", user.ID).First(&user)
+	if user.ID == "" || !user.DeletedAt.Valid {
+		tx.Rollback()
+		return user, UserNotFoundError(user.ID)
+	}
+
+	return user, nil
 }
