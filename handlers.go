@@ -17,3 +17,10 @@ func ValidateEmailHandler(request events.APIGatewayProxyRequest) (events.APIGate
 		StatusCode: 200,
 	}, nil
 }
+
+func PasswordStrengthHandler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	return events.APIGatewayProxyResponse{
+		Body:       `{"passwordStrengthHandler": "hit"}`,
+		StatusCode: 200,
+	}, nil
+}

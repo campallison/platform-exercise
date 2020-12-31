@@ -66,6 +66,23 @@ func isValidName(name string) bool {
 	return res
 }
 
+func validateEmail(email string) (bool, error) {
+	parsedEmail, err := utils.ParseEmail(email)
+	if err != nil {
+		return false, CouldNotParseEmailError(email)
+	}
+
+	if utils.IsAliasedEmail(parsedEmail.LocalPart) {
+		return false, AliasedEmailError(email)
+	}
+
+	if utils.IsKnownSpamEmail(parsedEmail) {
+		return false, ProhibitedEmailError(email)
+	}
+
+	return true, nil
+}
+
 func CreateUser(db *gorm.DB, req CreateUserRequest) (User, error) {
 	var user User
 
@@ -73,17 +90,15 @@ func CreateUser(db *gorm.DB, req CreateUserRequest) (User, error) {
 		return User{}, InvalidNameError(req.Name)
 	}
 
-	parsedEmail, err := utils.ParseEmail(req.Email)
+	user.Name = req.Name
+
+	isValidEmail, err := validateEmail(req.Email)
 	if err != nil {
-		return User{}, CouldNotParseEmailError(req.Email)
+		return User{}, err
 	}
 
-	if utils.IsAliasedEmail(parsedEmail.LocalPart) {
-		return User{}, AliasedEmailError(req.Email)
-	}
-
-	if utils.IsKnownSpamEmail(parsedEmail) {
-		return User{}, ProhibitedEmailError(req.Email)
+	if isValidEmail {
+		user.Email = req.Email
 	}
 
 	if utils.PasswordStrength(req.Password) < insecurePasswordThreshold {
@@ -95,8 +110,6 @@ func CreateUser(db *gorm.DB, req CreateUserRequest) (User, error) {
 		return User{}, err
 	}
 
-	user.Name = req.Name
-	user.Email = req.Email
 	user.Password = hashedPW
 
 	if err := db.Save(&user).Error; err != nil {
@@ -104,4 +117,8 @@ func CreateUser(db *gorm.DB, req CreateUserRequest) (User, error) {
 	}
 
 	return user, nil
+}
+
+func ValidateEmail(req ValidateEmailRequest) (bool, error) {
+	return validateEmail(req.Email)
 }

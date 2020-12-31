@@ -42,6 +42,22 @@ Resources:
         Environment:
           Variables:
             PARAM1: VALUE
+    CheckPasswordStrengthFunction:
+      Type: AWS::Serverless::Function
+      Properties:
+        CodeUri: password-strength/
+        Handler: password-strength
+        Runtime: go1.x
+        Tracing: Active
+        Events:
+          CatchAll:
+            Type: Api
+            Properties:
+              Path: /user/validate-email
+              Method: POST
+        Environment:
+          Variables:
+            PARAM1: VALUE
 
 Outputs:
   HelloWorldAPI:
