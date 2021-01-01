@@ -41,7 +41,7 @@ func isValidName(name string) bool {
 func ValidateEmail(req ValidateEmailRequest) (bool, error) {
 	parsedEmail, err := utils.ParseEmail(req.Email)
 	if err != nil {
-		return false, utils.CouldNotParseEmailError(req.Email, err)
+		return false, utils.CouldNotParseEmailError(req.Email)
 	}
 
 	if utils.IsAliasedEmail(parsedEmail.LocalPart) {

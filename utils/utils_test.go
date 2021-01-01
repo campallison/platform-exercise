@@ -153,17 +153,17 @@ func Test_parseEmail(t *testing.T) {
 		{
 			name:  "no localpart",
 			input: "@fender.com",
-			err:   InvalidEmailError("@fender.com", errors2.New("")),
+			err:   InvalidEmailError("@fender.com"),
 		},
 		{
 			name:  "no domain",
 			input: "leo@",
-			err:   InvalidEmailError("leo@", errors2.New("")),
+			err:   InvalidEmailError("leo@"),
 		},
 		{
 			name:  "no SLD in domain",
 			input: "leo@fender",
-			err:   InvalidEmailError("leo@fender", errors2.New("")),
+			err:   InvalidEmailError("leo@fender"),
 		},
 		{
 			name:  "contains alias",

@@ -1,7 +1,6 @@
 package utils
 
 import (
-	errors2 "errors"
 	"regexp"
 	"strings"
 
@@ -82,7 +81,7 @@ func IsKnownSpamEmail(email Email) bool {
 func ParseEmail(email string) (Email, error) {
 
 	if !emailRegexp.MatchString(email) {
-		return Email{}, InvalidEmailError(email, errors2.New(""))
+		return Email{}, InvalidEmailError(email)
 	}
 
 	if IsAliasedEmail(email) {

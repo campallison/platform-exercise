@@ -40,7 +40,7 @@ func Test_CreateUser(t *testing.T) {
 					Password: strongPW,
 				},
 				expected: User{},
-				err:      utils.CouldNotParseEmailError("leo@fender", errors.New("")),
+				err:      utils.CouldNotParseEmailError("leo@fender"),
 			},
 			{
 				name: "returns an error if email is aliased",
@@ -50,7 +50,7 @@ func Test_CreateUser(t *testing.T) {
 					Password: strongPW,
 				},
 				expected: User{},
-				err:      utils.CouldNotParseEmailError("leo+tune@fender.com", errors.New("")),
+				err:      utils.CouldNotParseEmailError("leo+tune@fender.com"),
 			},
 			{
 				name: "returns an error if email is prohibited",
@@ -224,7 +224,7 @@ func Test_UpdateUser(t *testing.T) {
 					Email: "bender@isGreat",
 				},
 				expected: User{},
-				err:      utils.CouldNotParseEmailError("bender@isGreat", errors.New("")),
+				err:      utils.CouldNotParseEmailError("bender@isGreat"),
 			},
 			{
 				name: "successfully updates a valid name",

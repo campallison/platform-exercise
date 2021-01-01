@@ -2,7 +2,6 @@ package platform_exercise
 
 import (
 	"encoding/json"
-	"strconv"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/campallison/platform-exercise/utils"
@@ -74,7 +73,7 @@ func DeleteUserHandler(request events.APIGatewayProxyRequest) (events.APIGateway
 		return parseFailureResponse(err)
 	}
 
-	_, err := DeleteUser(deleteUserReq)
+	deletedUser, err := DeleteUser(deleteUserReq)
 	if err != nil {
 		apiError := err.(utils.APIError)
 
@@ -85,8 +84,12 @@ func DeleteUserHandler(request events.APIGatewayProxyRequest) (events.APIGateway
 		}, nil
 	}
 
+	body, err := json.Marshal(DeleteUserResponse{ID: deletedUser})
+
 	return events.APIGatewayProxyResponse{
 		StatusCode: 200,
+		Headers:    map[string]string{"Content-Type": "application/json"},
+		Body:       string(body),
 	}, nil
 }
 
@@ -117,8 +120,11 @@ func ValidateEmailHandler(request events.APIGatewayProxyRequest) (events.APIGate
 func PasswordStrengthHandler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	pwStrength := utils.PasswordStrength(request.Body)
 
+	body, _ := json.Marshal(PasswordStrengthResponse{Strength: pwStrength})
+
 	return events.APIGatewayProxyResponse{
-		Body:       strconv.Itoa(pwStrength),
+		Headers:    map[string]string{"Content-Type": "application/json"},
+		Body:       string(body),
 		StatusCode: 200,
 	}, nil
 }
