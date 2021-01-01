@@ -3,10 +3,29 @@ package utils
 import (
 	"errors"
 	"fmt"
+	"net/http"
 )
 
-func CouldNotParseEmailError(email string) error {
-	return errors.New(fmt.Sprintf("unable to parse email %s", email))
+type APIError struct {
+	Message string
+	Errors  interface{}
+	Code    int
+}
+
+func (a APIError) Error() string {
+	return a.Message
+}
+
+func NewAPIError(message string, errors interface{}, code int) error {
+	return APIError{message, errors, code}
+}
+
+func CouldNotParseEmailError(email string, err error) error {
+	return NewAPIError(
+		fmt.Sprintf("unable to parse email %s", email),
+		err.Error(),
+		http.StatusUnprocessableEntity,
+	)
 }
 
 func InvalidEmailError(email string) error {

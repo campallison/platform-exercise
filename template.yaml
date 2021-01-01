@@ -8,6 +8,11 @@ Description: >
 Globals:
   Function:
     Timeout: 5
+Parameters:
+  POSTGRES_URL:
+    Default: "Postgres url not set"
+    Description: "Postgres url"
+    Type: String
 
 Resources:
   CreateUserFunction:
@@ -25,7 +30,7 @@ Resources:
             Method: POST
       Environment:
         Variables:
-          PARAM1: VALUE
+          postgresURL: !Ref POSTGRES_URL
   UpdateUserFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -41,7 +46,7 @@ Resources:
             Method: PATCH
       Environment:
         Variables:
-          PARAM1: VALUE
+          postgresURL: !Ref POSTGRES_URL
   DeleteUserFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -57,7 +62,7 @@ Resources:
             Method: DELETE
       Environment:
         Variables:
-          PARAM1: VALUE
+          postgresURL: !Ref POSTGRES_URL
   ValidateEmailFunction:
     Type: AWS::Serverless::Function
     Properties:

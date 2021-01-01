@@ -8,8 +8,6 @@ import (
 	"gorm.io/gorm"
 )
 
-const PostgresURL = "postgres://root:postgres@localhost:5432/postgres?sslmode=disable"
-
 const (
 	// zxcvbn threshold goes from:
 	//   0: too guessable (guesses < 10^6)
@@ -44,7 +42,7 @@ func isValidName(name string) bool {
 func ValidateEmail(req ValidateEmailRequest) (bool, error) {
 	parsedEmail, err := utils.ParseEmail(req.Email)
 	if err != nil {
-		return false, utils.CouldNotParseEmailError(req.Email)
+		return false, utils.CouldNotParseEmailError(req.Email, err)
 	}
 
 	if utils.IsAliasedEmail(parsedEmail.LocalPart) {
@@ -58,7 +56,8 @@ func ValidateEmail(req ValidateEmailRequest) (bool, error) {
 	return true, nil
 }
 
-func CreateUser(db *gorm.DB, req CreateUserRequest) (User, error) {
+func CreateUser(req CreateUserRequest) (User, error) {
+	db := Init()
 	var user User
 
 	if !isValidName(req.Name) {

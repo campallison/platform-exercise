@@ -22,6 +22,12 @@ type CreateUserRequest struct {
 	Password string `json:"password" validate:"required,gt=0"`
 }
 
+type CreateUserResponse struct {
+	ID    string `json:"id"`
+	Name  string `json:"name"`
+	Email string `json:"email"`
+}
+
 type UpdateUserRequest struct {
 	ID       string `json:"id" validate:"required"`
 	Name     string `json:"name"`
