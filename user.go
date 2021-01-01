@@ -149,11 +149,11 @@ func UpdateUser(req UpdateUserRequest) (User, error) {
 	return updated, nil
 }
 
-func DeleteUser(req DeleteUserRequest) (User, error) {
+func DeleteUser(req DeleteUserRequest) (string, error) {
 	db := Init()
 	var user User
 	if err := db.Where(`id = ?`, req.ID).First(&user).Error; err != nil {
-		return user, utils.UserNotFoundError(req.ID)
+		return req.ID, utils.UserNotFoundError(req.ID)
 	}
 
 	tx := db.Begin()
@@ -163,20 +163,20 @@ func DeleteUser(req DeleteUserRequest) (User, error) {
 		}
 	}()
 
-	if err := tx.Table("users").Where("id  = ?", user.ID).Delete(User{}).Error; err != nil {
+	if err := db.Delete(&User{}, "id = ?", req.ID).Error; err != nil {
 		tx.Rollback()
-		return User{}, err
+		return req.ID, err
 	}
 
 	if err := tx.Commit().Error; err != nil {
-		return User{}, err
+		return req.ID, err
 	}
 
 	db.Unscoped().Where("id = ?", user.ID).First(&user)
 	if user.ID == "" || !user.DeletedAt.Valid {
 		tx.Rollback()
-		return user, utils.UserNotFoundError(user.ID)
+		return req.ID, utils.UserNotFoundError(user.ID)
 	}
 
-	return user, nil
+	return req.ID, nil
 }

@@ -29,10 +29,6 @@ type DeleteUserRequest struct {
 	ID string `json:"id" validate:"required"`
 }
 
-type DeleteUserResponse struct {
-	ID string `json:"id"`
-}
-
 type ValidateEmailRequest struct {
 	Email string `json:"email" validate:"email"`
 }

@@ -74,10 +74,18 @@ func DeleteUserHandler(request events.APIGatewayProxyRequest) (events.APIGateway
 		return parseFailureResponse(err)
 	}
 
-	deletedUser, err := DeleteUser(deleteUserReq)
+	_, err := DeleteUser(deleteUserReq)
+	if err != nil {
+		apiError := err.(utils.APIError)
+
+		return events.APIGatewayProxyResponse{
+			StatusCode: apiError.Code,
+			Headers:    map[string]string{"Content-Type": "text/plain"},
+			Body:       apiError.Message,
+		}, nil
+	}
 
 	return events.APIGatewayProxyResponse{
-		Body:       `{"deleteUserHandler": "hit"}`,
 		StatusCode: 200,
 	}, nil
 }

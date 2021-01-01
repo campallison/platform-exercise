@@ -323,17 +323,15 @@ func Test_DeleteUser(t *testing.T) {
 		id := "13a185dd-1c2e-4092-81cc-ec306d18b2bd"
 
 		cases := []struct {
-			name     string
-			setup    func(*gorm.DB)
-			req      DeleteUserRequest
-			expected User
-			err      error
-		}{ //TODO basic functionality in, add auth
+			name  string
+			setup func(*gorm.DB)
+			req   DeleteUserRequest
+			err   error
+		}{
 			{
-				name:     "returns an error if requested user ID is not found",
-				req:      DeleteUserRequest{ID: id},
-				expected: User{},
-				err:      utils.UserNotFoundError(id),
+				name: "returns an error if requested user ID is not found",
+				req:  DeleteUserRequest{ID: id},
+				err:  utils.UserNotFoundError(id),
 			},
 			{
 				name: "deletes a user successfully",
@@ -345,9 +343,8 @@ func Test_DeleteUser(t *testing.T) {
 						Password: "irrelevant",
 					})
 				},
-				req:      DeleteUserRequest{ID: id},
-				expected: User{},
-				err:      nil,
+				req: DeleteUserRequest{ID: id},
+				err: nil,
 			},
 		}
 
@@ -358,18 +355,8 @@ func Test_DeleteUser(t *testing.T) {
 					c.setup(database)
 				}
 
-				res, err := DeleteUser(c.req)
+				_, err := DeleteUser(c.req)
 				utils.AssertErrorsEqual(t, c.err, err)
-				if diff := cmp.Diff(
-					c.expected,
-					res,
-					cmpopts.IgnoreFields(User{}, "Password"),
-					cmpopts.IgnoreFields(User{}, "CreatedAt"),
-					cmpopts.IgnoreFields(User{}, "UpdatedAt"),
-					cmpopts.IgnoreFields(User{}, "DeletedAt"),
-				); diff != "" {
-					t.Errorf("\nUnexpected user (-want, +got)\n%s", diff)
-				}
 			})
 		}
 	})
