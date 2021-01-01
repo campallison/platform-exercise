@@ -5,7 +5,6 @@ import (
 
 	"github.com/campallison/platform-exercise/utils"
 	"golang.org/x/crypto/bcrypt"
-	"gorm.io/gorm"
 )
 
 const (
@@ -16,7 +15,7 @@ const (
 	bcryptGenerationCost      = 14
 )
 
-func checkPasswordStrength(password string) (err error) {
+func CheckPasswordStrength(password string) (err error) {
 	if utils.PasswordStrength(password) < insecurePasswordThreshold {
 		err = utils.InsecurePasswordError()
 	}
@@ -93,8 +92,9 @@ func CreateUser(req CreateUserRequest) (User, error) {
 	return user, nil
 }
 
-func UpdateUser(db *gorm.DB, req UpdateUserRequest) (User, error) {
-	// TODO implement token check in here
+func UpdateUser(req UpdateUserRequest) (User, error) {
+	db := Init()
+
 	if req.ID != "" &&
 		req.Name == "" &&
 		req.Email == "" &&
@@ -149,7 +149,8 @@ func UpdateUser(db *gorm.DB, req UpdateUserRequest) (User, error) {
 	return updated, nil
 }
 
-func DeleteUser(db *gorm.DB, req DeleteUserRequest) (User, error) {
+func DeleteUser(req DeleteUserRequest) (User, error) {
+	db := Init()
 	var user User
 	if err := db.Where(`id = ?`, req.ID).First(&user).Error; err != nil {
 		return user, utils.UserNotFoundError(req.ID)

@@ -15,36 +15,3 @@ type User struct {
 	Email     string         `json:"email"`
 	Password  string         `json:"password"`
 }
-
-type CreateUserRequest struct {
-	Name     string `json:"name" validate:"required"`
-	Email    string `json:"email" validate:"required,email"`
-	Password string `json:"password" validate:"required,gt=0"`
-}
-
-type CreateUserResponse struct {
-	ID    string `json:"id"`
-	Name  string `json:"name"`
-	Email string `json:"email"`
-}
-
-type UpdateUserRequest struct {
-	ID       string `json:"id" validate:"required"`
-	Name     string `json:"name"`
-	Email    string `json:"email" validate:"email"`
-	Password string `json:"password" validate:"gt=0"`
-}
-
-type DeleteUserRequest struct {
-	ID string `json:"id" validate:"required"`
-}
-
-type ValidateEmailRequest struct {
-	Email string `json:"email" validate:"email"`
-}
-
-type ValidateEmailResponse struct {
-	Email   string `json:"email"`
-	IsValid bool   `json:"isValid`
-	Error   string `json:"error"`
-}

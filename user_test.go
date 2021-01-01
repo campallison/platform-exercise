@@ -209,23 +209,23 @@ func Test_UpdateUser(t *testing.T) {
 				expected: User{},
 				err:      utils.InsecurePasswordError(),
 			},
-			//{
-			//	name: "returns an error if new email is invalid",
-			//	setup: func(db *gorm.DB) {
-			//		db.Save(&User{
-			//			ID:       id,
-			//			Name:     "Philip Fry",
-			//			Email:    "deliveryboy@panuccis.net",
-			//			Password: "WalkinOnSunshine1999!",
-			//		})
-			//	},
-			//	req: UpdateUserRequest{
-			//		ID:    id,
-			//		Email: "bender@isGreat",
-			//	},
-			//	expected: User{},
-			//	err:      utils.CouldNotParseEmailError("bender@isGreat"),
-			//},
+			{
+				name: "returns an error if new email is invalid",
+				setup: func(db *gorm.DB) {
+					db.Save(&User{
+						ID:       id,
+						Name:     "Philip Fry",
+						Email:    "deliveryboy@panuccis.net",
+						Password: "WalkinOnSunshine1999!",
+					})
+				},
+				req: UpdateUserRequest{
+					ID:    id,
+					Email: "bender@isGreat",
+				},
+				expected: User{},
+				err:      utils.CouldNotParseEmailError("bender@isGreat", errors.New("")),
+			},
 			{
 				name: "successfully updates a valid name",
 				setup: func(db *gorm.DB) {
@@ -300,7 +300,7 @@ func Test_UpdateUser(t *testing.T) {
 					c.setup(database)
 				}
 
-				res, err := UpdateUser(database, c.req)
+				res, err := UpdateUser(c.req)
 				utils.AssertErrorsEqual(t, c.err, err)
 				if diff := cmp.Diff(
 					c.expected,
@@ -358,7 +358,7 @@ func Test_DeleteUser(t *testing.T) {
 					c.setup(database)
 				}
 
-				res, err := DeleteUser(database, c.req)
+				res, err := DeleteUser(c.req)
 				utils.AssertErrorsEqual(t, c.err, err)
 				if diff := cmp.Diff(
 					c.expected,
@@ -395,7 +395,7 @@ func Test_checkPasswordStrength(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			res := checkPasswordStrength(c.input)
+			res := CheckPasswordStrength(c.input)
 
 			utils.AssertErrorsEqual(t, c.err, res)
 		})

@@ -2,6 +2,7 @@ package platform_exercise
 
 import (
 	"encoding/json"
+	"strconv"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/campallison/platform-exercise/utils"
@@ -9,12 +10,8 @@ import (
 
 func CreateUserHandler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	var createUserReq CreateUserRequest
-	err := json.Unmarshal([]byte(request.Body), &createUserReq)
-	if err != nil {
-		return events.APIGatewayProxyResponse{
-			StatusCode: 400,
-			Body:       err.Error(),
-		}, nil
+	if err := json.Unmarshal([]byte(request.Body), &createUserReq); err != nil {
+		return parseFailureResponse(err)
 	}
 
 	createdUser, err := CreateUser(createUserReq)
@@ -42,13 +39,43 @@ func CreateUserHandler(request events.APIGatewayProxyRequest) (events.APIGateway
 }
 
 func UpdateUserHandler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	var updateUserReq UpdateUserRequest
+	if err := json.Unmarshal([]byte(request.Body), &updateUserReq); err != nil {
+		return parseFailureResponse(err)
+	}
+
+	updatedUser, err := UpdateUser(updateUserReq)
+	if err != nil {
+		apiError := err.(utils.APIError)
+
+		return events.APIGatewayProxyResponse{
+			StatusCode: apiError.Code,
+			Headers:    map[string]string{"Content-Type": "text/plain"},
+			Body:       apiError.Message,
+		}, nil
+	}
+
+	body, err := json.Marshal(UpdateUserResponse{
+		ID:    updatedUser.ID,
+		Name:  updatedUser.Name,
+		Email: updatedUser.Email,
+	})
+
 	return events.APIGatewayProxyResponse{
-		Body:       `{"updateUserHandler": "hit"}`,
 		StatusCode: 200,
+		Headers:    map[string]string{"Content-Type": "application/json"},
+		Body:       string(body),
 	}, nil
 }
 
 func DeleteUserHandler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	var deleteUserReq DeleteUserRequest
+	if err := json.Unmarshal([]byte(request.Body), &deleteUserReq); err != nil {
+		return parseFailureResponse(err)
+	}
+
+	deletedUser, err := DeleteUser(deleteUserReq)
+
 	return events.APIGatewayProxyResponse{
 		Body:       `{"deleteUserHandler": "hit"}`,
 		StatusCode: 200,
@@ -59,10 +86,7 @@ func ValidateEmailHandler(request events.APIGatewayProxyRequest) (events.APIGate
 	var validateEmailReq ValidateEmailRequest
 	err := json.Unmarshal([]byte(request.Body), &validateEmailReq)
 	if err != nil {
-		return events.APIGatewayProxyResponse{
-			StatusCode: 400,
-			Body:       err.Error(),
-		}, nil
+		return parseFailureResponse(err)
 	}
 
 	isEmailValid, err := ValidateEmail(validateEmailReq)
@@ -83,8 +107,17 @@ func ValidateEmailHandler(request events.APIGatewayProxyRequest) (events.APIGate
 }
 
 func PasswordStrengthHandler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	pwStrength := utils.PasswordStrength(request.Body)
+
 	return events.APIGatewayProxyResponse{
-		Body:       `{"passwordStrengthHandler": "hit"}`,
+		Body:       strconv.Itoa(pwStrength),
 		StatusCode: 200,
+	}, nil
+}
+
+func parseFailureResponse(err error) (events.APIGatewayProxyResponse, error) {
+	return events.APIGatewayProxyResponse{
+		StatusCode: 400,
+		Body:       err.Error(),
 	}, nil
 }
