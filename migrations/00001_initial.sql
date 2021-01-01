@@ -1,7 +1,4 @@
-CREATE USER docker;
-CREATE DATABASE docker;
-GRANT ALL PRIVILEGES ON DATABASE docker TO docker;
-
+-- +goose Up
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE TABLE users (
     created_at timestamp with time zone,
@@ -14,3 +11,6 @@ CREATE TABLE users (
     UNIQUE(email),
     PRIMARY KEY(id)
 );
+
+-- +goose Down
+DROP TABLE users;

@@ -8,7 +8,7 @@ import (
 )
 
 func CreateUserHandler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	var createUserReq *CreateUserRequest
+	var createUserReq CreateUserRequest
 	err := json.Unmarshal([]byte(request.Body), &createUserReq)
 	if err != nil {
 		return events.APIGatewayProxyResponse{
@@ -17,7 +17,7 @@ func CreateUserHandler(request events.APIGatewayProxyRequest) (events.APIGateway
 		}, nil
 	}
 
-	createdUser, err := CreateUser(*createUserReq)
+	createdUser, err := CreateUser(createUserReq)
 	if err != nil {
 		apiError := err.(utils.APIError)
 
@@ -28,7 +28,7 @@ func CreateUserHandler(request events.APIGatewayProxyRequest) (events.APIGateway
 		}, nil
 	}
 
-	user, err := json.Marshal(CreateUserResponse{
+	body, err := json.Marshal(CreateUserResponse{
 		ID:    createdUser.ID,
 		Name:  createdUser.Name,
 		Email: createdUser.Email,
@@ -37,7 +37,7 @@ func CreateUserHandler(request events.APIGatewayProxyRequest) (events.APIGateway
 	return events.APIGatewayProxyResponse{
 		StatusCode: 200,
 		Headers:    map[string]string{"Content-Type": "application/json"},
-		Body:       string(user),
+		Body:       string(body),
 	}, nil
 }
 
@@ -56,8 +56,28 @@ func DeleteUserHandler(request events.APIGatewayProxyRequest) (events.APIGateway
 }
 
 func ValidateEmailHandler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	var validateEmailReq ValidateEmailRequest
+	err := json.Unmarshal([]byte(request.Body), &validateEmailReq)
+	if err != nil {
+		return events.APIGatewayProxyResponse{
+			StatusCode: 400,
+			Body:       err.Error(),
+		}, nil
+	}
+
+	isEmailValid, err := ValidateEmail(validateEmailReq)
+	errToRespond := ""
+	if err != nil {
+		errToRespond = err.Error()
+	}
+	body, err := json.Marshal(ValidateEmailResponse{
+		Email:   validateEmailReq.Email,
+		IsValid: isEmailValid,
+		Error:   errToRespond,
+	})
+
 	return events.APIGatewayProxyResponse{
-		Body:       `{"validateEmail": "hit"}`,
+		Body:       string(body),
 		StatusCode: 200,
 	}, nil
 }

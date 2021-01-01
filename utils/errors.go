@@ -28,7 +28,7 @@ func CouldNotParseEmailError(email string, err error) error {
 	)
 }
 
-func InvalidEmailError(email string) error {
+func InvalidEmailError(email string, err error) error {
 	return errors.New(fmt.Sprintf("invalid or malformed email %s", email))
 }
 

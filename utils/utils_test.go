@@ -1,6 +1,7 @@
 package utils
 
 import (
+	errors2 "errors"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -152,17 +153,17 @@ func Test_parseEmail(t *testing.T) {
 		{
 			name:  "no localpart",
 			input: "@fender.com",
-			err:   InvalidEmailError("@fender.com"),
+			err:   InvalidEmailError("@fender.com", errors2.New("")),
 		},
 		{
 			name:  "no domain",
 			input: "leo@",
-			err:   InvalidEmailError("leo@"),
+			err:   InvalidEmailError("leo@", errors2.New("")),
 		},
 		{
 			name:  "no SLD in domain",
 			input: "leo@fender",
-			err:   InvalidEmailError("leo@fender"),
+			err:   InvalidEmailError("leo@fender", errors2.New("")),
 		},
 		{
 			name:  "contains alias",

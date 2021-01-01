@@ -42,3 +42,9 @@ type DeleteUserRequest struct {
 type ValidateEmailRequest struct {
 	Email string `json:"email" validate:"email"`
 }
+
+type ValidateEmailResponse struct {
+	Email   string `json:"email"`
+	IsValid bool   `json:"isValid`
+	Error   string `json:"error"`
+}
