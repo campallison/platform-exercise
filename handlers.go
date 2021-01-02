@@ -15,6 +15,12 @@ func badRequestResponse(err error) (events.APIGatewayProxyResponse, error) {
 	}, nil
 }
 
+func unauthorizedResponse() (events.APIGatewayProxyResponse, error) {
+	return events.APIGatewayProxyResponse{
+		StatusCode: http.StatusUnauthorized,
+	}, nil
+}
+
 func CreateUserHandler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	var createUserReq CreateUserRequest
 	if err := json.Unmarshal([]byte(request.Body), &createUserReq); err != nil {
@@ -50,10 +56,7 @@ func GetUserHandler(request events.APIGatewayProxyRequest) (events.APIGatewayPro
 	getUserReq.ID = request.PathParameters["id"]
 
 	if err := CheckToken(request.Headers["Authorization"], getUserReq.ID); err != nil {
-		return events.APIGatewayProxyResponse{
-			StatusCode: http.StatusUnauthorized,
-			Body:       err.Error(),
-		}, nil
+		return unauthorizedResponse()
 	}
 
 	retrievedUser, err := GetUser(getUserReq)
@@ -85,11 +88,10 @@ func UpdateUserHandler(request events.APIGatewayProxyRequest) (events.APIGateway
 	if err := json.Unmarshal([]byte(request.Body), &updateUserReq); err != nil {
 		return badRequestResponse(err)
 	}
+	updateUserReq.ID = request.PathParameters["id"]
 
 	if err := CheckToken(request.Headers["Authorization"], updateUserReq.ID); err != nil {
-		return events.APIGatewayProxyResponse{
-			StatusCode: http.StatusUnauthorized,
-		}, nil
+		return unauthorizedResponse()
 	}
 
 	updatedUser, err := UpdateUser(updateUserReq)
@@ -205,7 +207,17 @@ func LoginHandler(request events.APIGatewayProxyRequest) (events.APIGatewayProxy
 }
 
 func LogoutHandler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	logoutResult, err := Logout(request.Headers["Authorization"])
+	var logoutRequest LogoutRequest
+	id := request.PathParameters["id"]
+	authHeader := request.Headers["Authorization"]
+	if err := CheckToken(authHeader, id); err != nil {
+		return unauthorizedResponse()
+	}
+
+	logoutRequest.AccessToken, _ = getTokenFromAuthHeader(authHeader)
+	logoutRequest.ID = id
+
+	logoutResult, err := Logout(logoutRequest)
 	if err != nil {
 		return badRequestResponse(err)
 	}

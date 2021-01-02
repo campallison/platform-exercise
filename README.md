@@ -22,8 +22,13 @@ Result looks like:
 
 
 **Update User**
+Name, email, or password if given correct old password and strong enough new password. Or all.
 
-`curl PATCH 'http://127.0.0.1:1946/user' -d '{"name": "NewFirst NewLast", "email": "newfirstlast@newdomain.com"}' -v -H '{"Content-Type": "application/json", "Authorization": "bearer <token>"}'`
+Name and email example
+`curl -X PATCH 'http://127.0.0.1:1946/user/<userID>' -d '{"name":"NewFirst NewLast", "email": "newfirstlast@domain.com"}'  -H "Authorization: bearer <token>"}'`
+
+Password example
+`curl -X PATCH 'http://127.0.0.1:1946/user/<userID>' -d '{"oldPassword": "ArbitraryPassword%^&890", "newPassword": "NewArbitraryPassword%*23"}'  -H "Authorization: bearer <token>"`
 
 
 **Delete User**
@@ -33,7 +38,7 @@ Result looks like:
 
 **Log out as this user**
 
-`curl -X POST http://127.0.0.1:1946/login -d '{"email":  "firstlast@domain.com", "password": "ArbitraryPassword%^&890"}'`
+`curl -X POST http://127.0.0.1:1946/logout/<userID> -H "Authorization: bearer <token>`
 
 **Check password strength**
 Should probably be something done on the front end with the zxcvbn package, but can be done like this.

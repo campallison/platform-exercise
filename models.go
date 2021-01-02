@@ -17,8 +17,7 @@ type User struct {
 }
 
 type InvalidToken struct {
-	CreatedAt time.Time      `json:"-"`
-	UpdatedAt time.Time      `json:"-"`
-	DeletedAt gorm.DeletedAt `sql:"index" json:"-"`
-	Token     string         `json:"token"`
+	CreatedAt time.Time `json:"-"`
+	UpdatedAt time.Time `json:"-"`
+	Token     string    `json:"token" gorm:"primaryKey"`
 }

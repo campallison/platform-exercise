@@ -1,7 +1,6 @@
 package platform_exercise
 
 import (
-	"net/http"
 	"os"
 	"strings"
 	"time"
@@ -52,24 +51,16 @@ func Login(creds Credential) (LoginResponse, error) {
 	return LoginResponse{}, utils.LoginFailedError()
 }
 
-func Logout(authHeader string) (LogoutResponse, error) {
-	tokenString, err := getTokenFromAuthHeader(authHeader)
-	if err != nil {
-		return LogoutResponse{}, err
-	}
-
+func Logout(req LogoutRequest) (LogoutResponse, error) {
 	token := InvalidToken{
-		Token: tokenString,
+		Token: req.AccessToken,
 	}
 
 	db := Init()
 	deleteStaleInvalidTokens()
-	if err := db.Save(&token); err != nil {
-		return LogoutResponse{}, utils.APIError{
-			Message: "logout failed",
-			Errors:  err,
-			Code:    http.StatusInternalServerError,
-		}
+
+	if err := db.Save(&token).Error; err != nil {
+		return LogoutResponse{}, utils.LogoutFailedError(err)
 	}
 
 	return LogoutResponse{Success: true}, nil

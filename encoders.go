@@ -25,10 +25,11 @@ type GetUserResponse struct {
 }
 
 type UpdateUserRequest struct {
-	ID       string `json:"id" validate:"required"`
-	Name     string `json:"name"`
-	Email    string `json:"email" validate:"email"`
-	Password string `json:"password" validate:"gt=0"`
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	Email       string `json:"email" validate:"email"`
+	OldPassword string `json:"oldPassword" validate:"required_with=NewPassword"`
+	NewPassword string `json:"newPassword" validate:"required_with=OldPassword"`
 }
 
 type UpdateUserResponse struct {
@@ -51,7 +52,7 @@ type ValidateEmailRequest struct {
 
 type ValidateEmailResponse struct {
 	Email   string `json:"email"`
-	IsValid bool   `json:"isValid`
+	IsValid bool   `json:"isValid"`
 	Error   string `json:"error"`
 }
 
@@ -73,7 +74,8 @@ type LoginResponse struct {
 }
 
 type LogoutRequest struct {
-	Credential
+	ID          string `json:"id"`
+	AccessToken string `json:"access_token"`
 }
 
 type LogoutResponse struct {

@@ -131,3 +131,19 @@ func AuthHeaderError() error {
 		Code:    http.StatusUnauthorized,
 	}
 }
+
+func UnauthorizedError() error {
+	return APIError{
+		Message: "unauthorized",
+		Errors:  errors.New("unauthorized"),
+		Code:    http.StatusUnauthorized,
+	}
+}
+
+func LogoutFailedError(err error) error {
+	return APIError{
+		Message: "logout failed",
+		Errors:  err,
+		Code:    http.StatusInternalServerError,
+	}
+}

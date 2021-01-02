@@ -208,6 +208,8 @@ func Test_UpdateUser(t *testing.T) {
 	databaseTest(t, func(database *gorm.DB) {
 		clearDatabase(database)
 		id := "13a185dd-1c2e-4092-81cc-ec306d18b2bd"
+		frysPW := "WalkinOnSunshine1999!"
+		frysHash, _ := HashPassword(frysPW)
 
 		cases := []struct {
 			name     string
@@ -269,8 +271,9 @@ func Test_UpdateUser(t *testing.T) {
 					})
 				},
 				req: UpdateUserRequest{
-					ID:       id,
-					Password: "weak",
+					ID:          id,
+					OldPassword: "WalkinOnSunshine1999!",
+					NewPassword: "weak",
 				},
 				expected: User{},
 				err:      utils.InsecurePasswordError(),
@@ -356,7 +359,64 @@ func Test_UpdateUser(t *testing.T) {
 				},
 				err: nil,
 			},
-			// TODO password related tests
+			{
+				name: "successfully updates a password given correct current password",
+				setup: func(db *gorm.DB) {
+					db.Save(&User{
+						ID:       id,
+						Name:     "Philip Fry",
+						Email:    "deliveryboy@panuccis.net",
+						Password: frysHash,
+					})
+				},
+				req: UpdateUserRequest{
+					ID:          id,
+					OldPassword: "WalkinOnSunshine1999!",
+					NewPassword: "BenderIsGreat3001!",
+				},
+				expected: User{
+					ID:    id,
+					Name:  "Philip Fry",
+					Email: "deliveryboy@panuccis.net",
+				},
+				err: nil,
+			},
+			{
+				name: "does not update a password given incorrect current password",
+				setup: func(db *gorm.DB) {
+					db.Save(&User{
+						ID:       id,
+						Name:     "Philip Fry",
+						Email:    "deliveryboy@panuccis.net",
+						Password: "$2a$14$8/kFdq99JkTajySO88HzS.PQntfZFt19FvEsshCYb3zG1NpR2/yiS",
+					})
+				},
+				req: UpdateUserRequest{
+					ID:          id,
+					OldPassword: "WalkinOnSunshine1999!",
+					NewPassword: "BenderIsGreat3001!",
+				},
+				expected: User{},
+				err:      utils.UnauthorizedError(),
+			},
+			{
+				name: "does not update a password given weak new password",
+				setup: func(db *gorm.DB) {
+					db.Save(&User{
+						ID:       id,
+						Name:     "Philip Fry",
+						Email:    "deliveryboy@panuccis.net",
+						Password: frysHash,
+					})
+				},
+				req: UpdateUserRequest{
+					ID:          id,
+					OldPassword: "WalkinOnSunshine1999!",
+					NewPassword: "TL",
+				},
+				expected: User{},
+				err:      utils.InsecurePasswordError(),
+			},
 		}
 
 		for _, c := range cases {

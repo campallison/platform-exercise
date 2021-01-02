@@ -2,7 +2,6 @@
 CREATE TABLE invalid_tokens (
     created_at timestamp with time zone,
     updated_at timestamp with time zone,
-    deleted_at timestamp with time zone,
     token text,
     PRIMARY KEY (token)
 );

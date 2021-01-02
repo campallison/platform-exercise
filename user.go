@@ -107,7 +107,8 @@ func UpdateUser(req UpdateUserRequest) (User, error) {
 	if req.ID != "" &&
 		req.Name == "" &&
 		req.Email == "" &&
-		req.Password == "" {
+		req.NewPassword == "" &&
+		req.OldPassword == "" {
 		return User{}, nil
 	}
 
@@ -120,14 +121,21 @@ func UpdateUser(req UpdateUserRequest) (User, error) {
 		return User{}, utils.InvalidNameError(req.Name)
 	}
 
-	if req.Password != "" &&
-		utils.PasswordStrength(req.Password) < insecurePasswordThreshold {
-		return User{}, utils.InsecurePasswordError()
-	}
-
-	hashedPW, err := HashPassword(req.Password)
-	if err != nil {
-		return User{}, err
+	var hashedPW string
+	if req.NewPassword != "" {
+		if utils.PasswordStrength(req.NewPassword) < insecurePasswordThreshold {
+			return User{}, utils.InsecurePasswordError()
+		} else {
+			err := bcrypt.CompareHashAndPassword([]byte(existing.Password), []byte(req.OldPassword))
+			if err != nil {
+				return User{}, utils.UnauthorizedError()
+			} else {
+				hashedPW, err = HashPassword(req.NewPassword)
+				if err != nil {
+					return User{}, err
+				}
+			}
+		}
 	}
 
 	if req.Email != "" {
@@ -142,7 +150,7 @@ func UpdateUser(req UpdateUserRequest) (User, error) {
 		fields["name"] = req.Name
 	}
 
-	if req.Password != "" {
+	if hashedPW != "" {
 		fields["password"] = hashedPW
 	}
 

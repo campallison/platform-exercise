@@ -66,8 +66,11 @@ Resources:
         CatchAll:
           Type: Api
           Properties:
-            Path: /user
+            Path: /user/{id}
             Method: PATCH
+            RequestParameters:
+              - method.request.path.id:
+                  Required: true
       Environment:
         Variables:
           postgresURL: !Ref POSTGRES_URL
@@ -117,8 +120,11 @@ Resources:
         CatchAll:
           Type: Api
           Properties:
-            Path: /logout
+            Path: /logout/{id}
             Method: POST
+            RequestParameters:
+              - method.request.path.id:
+                  Required: true
       Environment:
         Variables:
           postgresURL: !Ref POSTGRES_URL
