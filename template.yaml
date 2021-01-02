@@ -13,6 +13,10 @@ Parameters:
     Default: "Postgres url not set"
     Description: "Postgres url"
     Type: String
+  SIGNING_SECRET:
+    Default: ""
+    Description: "JWT token signing secret"
+    Type: String
 
 Resources:
   CreateUserFunction:
@@ -31,6 +35,26 @@ Resources:
       Environment:
         Variables:
           postgresURL: !Ref POSTGRES_URL
+  GetUserFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: get-user/
+      Handler: get-user
+      Runtime: go1.x
+      Tracing: Active
+      Events:
+        CatchAll:
+          Type: Api
+          Properties:
+            Path: /user/{id}
+            Method: GET
+            RequestParameters:
+              - method.request.path.id:
+                  Required: true
+      Environment:
+        Variables:
+          postgresURL: !Ref POSTGRES_URL
+          signing_secret: !Ref SIGNING_SECRET
   UpdateUserFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -47,6 +71,7 @@ Resources:
       Environment:
         Variables:
           postgresURL: !Ref POSTGRES_URL
+          signing_secret: !Ref SIGNING_SECRET
   DeleteUserFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -63,6 +88,41 @@ Resources:
       Environment:
         Variables:
           postgresURL: !Ref POSTGRES_URL
+          signing_secret: !Ref SIGNING_SECRET
+  LoginFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: login/
+      Handler: login
+      Runtime: go1.x
+      Tracing: Active
+      Events:
+        CatchAll:
+          Type: Api
+          Properties:
+            Path: /login
+            Method: POST
+      Environment:
+        Variables:
+          postgresURL: !Ref POSTGRES_URL
+          signing_secret: !Ref SIGNING_SECRET
+  LogoutFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: logout/
+      Handler: logout
+      Runtime: go1.x
+      Tracing: Active
+      Events:
+        CatchAll:
+          Type: Api
+          Properties:
+            Path: /logout
+            Method: POST
+      Environment:
+        Variables:
+          postgresURL: !Ref POSTGRES_URL
+          signing_secret: !Ref SIGNING_SECRET
   ValidateEmailFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -76,9 +136,6 @@ Resources:
           Properties:
             Path: /validate-email
             Method: POST
-      Environment:
-        Variables:
-          PARAM1: VALUE
   CheckPasswordStrengthFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -92,10 +149,6 @@ Resources:
           Properties:
             Path: /password-strength
             Method: POST
-      Environment:
-        Variables:
-          PARAM1: VALUE
-
 Outputs:
   HelloWorldAPI:
     Description: "API Gateway endpoint URL for Prod environment for First Function"

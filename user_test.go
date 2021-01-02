@@ -1,7 +1,6 @@
 package platform_exercise
 
 import (
-	"errors"
 	"testing"
 
 	"github.com/campallison/platform-exercise/utils"
@@ -121,6 +120,73 @@ func Test_CreateUser(t *testing.T) {
 				}
 
 				res, err := CreateUser(c.req)
+				utils.AssertErrorsEqual(t, c.err, err)
+				if diff := cmp.Diff(
+					c.expected,
+					res,
+					cmpopts.IgnoreFields(User{}, "ID"),
+					cmpopts.IgnoreFields(User{}, "Password"),
+					cmpopts.IgnoreFields(User{}, "CreatedAt"),
+					cmpopts.IgnoreFields(User{}, "UpdatedAt"),
+					cmpopts.IgnoreFields(User{}, "DeletedAt"),
+				); diff != "" {
+					t.Errorf("\nUnexpected user (-want, +got)\n%s", diff)
+				}
+			})
+		}
+	})
+}
+
+func Test_GetUser(t *testing.T) {
+	databaseTest(t, func(database *gorm.DB) {
+		clearDatabase(database)
+		id := "5a135f2a-976d-4db7-9910-8a96b043b1b6"
+
+		cases := []struct {
+			name     string
+			setup    func(*gorm.DB)
+			req      GetUserRequest
+			expected User
+			err      error
+		}{
+			{
+				name: "returns an error for user not found, by ID",
+				req: GetUserRequest{
+					ID: id,
+				},
+				expected: User{},
+				err:      utils.UserNotFoundError(id),
+			},
+			{
+				name: "retrieves a user by ID",
+				setup: func(db *gorm.DB) {
+					db.Save(&User{
+						ID:       id,
+						Name:     "Enrico Fermi",
+						Email:    "ilpapa@umich.edu",
+						Password: "ThePileIsCritical",
+					})
+				},
+				req: GetUserRequest{
+					ID: id,
+				},
+				expected: User{
+					ID:    id,
+					Name:  "Enrico Fermi",
+					Email: "ilpapa@umich.edu",
+				},
+				err: nil,
+			},
+		}
+
+		for _, c := range cases {
+			t.Run(c.name, func(t *testing.T) {
+				clearDatabase(database)
+				if c.setup != nil {
+					c.setup(database)
+				}
+
+				res, err := GetUser(c.req)
 				utils.AssertErrorsEqual(t, c.err, err)
 				if diff := cmp.Diff(
 					c.expected,

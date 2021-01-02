@@ -79,7 +79,55 @@ func SaveUserToDBError(email string) error {
 func UserNotFoundError(id string) error {
 	return NewAPIError(
 		fmt.Sprintf("user ID %s not found", id),
-		errors.New("user not found"),
+		errors.New("user not found by ID"),
 		http.StatusBadRequest,
 	)
+}
+
+func LoginFailedError() error {
+	return APIError{
+		Message: "login failed",
+		Errors:  errors.New("login failed"),
+		Code:    http.StatusInternalServerError,
+	}
+}
+
+func InvalidTokenError() error {
+	return APIError{
+		Message: "invalid token",
+		Errors:  errors.New("invalid token"),
+		Code:    http.StatusUnauthorized,
+	}
+}
+
+func TokenCheckFailedError() error {
+	return APIError{
+		Message: "invalid token check failed",
+		Errors:  errors.New("invalid token check failed, please retry"),
+		Code:    http.StatusInternalServerError,
+	}
+}
+
+func TokenSignatureError() error {
+	return APIError{
+		Message: "token not signed as expected",
+		Errors:  errors.New("token not signed as expected"),
+		Code:    http.StatusUnauthorized,
+	}
+}
+
+func ParseTokenError(err error) error {
+	return APIError{
+		Message: "unable to parse token",
+		Errors:  err,
+		Code:    http.StatusUnauthorized,
+	}
+}
+
+func AuthHeaderError() error {
+	return APIError{
+		Message: "missing authorization header",
+		Errors:  errors.New("missing authorization header"),
+		Code:    http.StatusUnauthorized,
+	}
 }

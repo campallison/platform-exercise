@@ -8,9 +8,6 @@ import (
 )
 
 const (
-	// zxcvbn threshold goes from:
-	//   0: too guessable (guesses < 10^6)
-	//   4: very unguessable (guesses >= 10^10)
 	insecurePasswordThreshold = 2
 	bcryptGenerationCost      = 14
 )
@@ -33,7 +30,6 @@ func HashPassword(password string) (string, error) {
 
 func isValidName(name string) bool {
 	regex := `^[^0-9_!¡?÷?¿/\\+=@#$%ˆ&*(){}|~<>;:[\]]{2,}$`
-	// credit: https://stackoverflow.com/questions/2385701/regular-expression-for-first-and-last-name#comment103416432_45871742
 	res, _ := regexp.MatchString(regex, name)
 	return res
 }
@@ -87,6 +83,19 @@ func CreateUser(req CreateUserRequest) (User, error) {
 
 	if err := db.Save(&user).Error; err != nil {
 		return User{}, utils.SaveUserToDBError(user.Email)
+	}
+
+	return user, nil
+}
+
+func GetUser(req GetUserRequest) (User, error) {
+	db := Init()
+	var user User
+
+	if req.ID != "" {
+		if err := db.Table("users").Where("id = ?", req.ID).First(&user).Error; err != nil {
+			return User{}, utils.UserNotFoundError(req.ID)
+		}
 	}
 
 	return user, nil

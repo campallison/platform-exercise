@@ -1,5 +1,7 @@
 package platform_exercise
 
+import "time"
+
 type CreateUserRequest struct {
 	Name     string `json:"name" validate:"required"`
 	Email    string `json:"email" validate:"required,email"`
@@ -7,6 +9,16 @@ type CreateUserRequest struct {
 }
 
 type CreateUserResponse struct {
+	ID    string `json:"id"`
+	Name  string `json:"name"`
+	Email string `json:"email"`
+}
+
+type GetUserRequest struct {
+	ID string `validate:uuid4`
+}
+
+type GetUserResponse struct {
 	ID    string `json:"id"`
 	Name  string `json:"name"`
 	Email string `json:"email"`
@@ -49,4 +61,21 @@ type PasswordStrengthRequest struct {
 
 type PasswordStrengthResponse struct {
 	Strength int `json:"strength"`
+}
+
+type LoginRequest struct {
+	Credential
+}
+
+type LoginResponse struct {
+	AccessToken string    `json:"access_token"`
+	Expiry      time.Time `json:"expiry"`
+}
+
+type LogoutRequest struct {
+	Credential
+}
+
+type LogoutResponse struct {
+	Success bool `json:"success"`
 }

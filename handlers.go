@@ -2,15 +2,23 @@ package platform_exercise
 
 import (
 	"encoding/json"
+	"net/http"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/campallison/platform-exercise/utils"
 )
 
+func badRequestResponse(err error) (events.APIGatewayProxyResponse, error) {
+	return events.APIGatewayProxyResponse{
+		StatusCode: http.StatusBadRequest,
+		Body:       err.Error(),
+	}, nil
+}
+
 func CreateUserHandler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	var createUserReq CreateUserRequest
 	if err := json.Unmarshal([]byte(request.Body), &createUserReq); err != nil {
-		return parseFailureResponse(err)
+		return badRequestResponse(err)
 	}
 
 	createdUser, err := CreateUser(createUserReq)
@@ -37,10 +45,51 @@ func CreateUserHandler(request events.APIGatewayProxyRequest) (events.APIGateway
 	}, nil
 }
 
+func GetUserHandler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	var getUserReq GetUserRequest
+	getUserReq.ID = request.PathParameters["id"]
+
+	if err := CheckToken(request.Headers["Authorization"], getUserReq.ID); err != nil {
+		return events.APIGatewayProxyResponse{
+			StatusCode: http.StatusUnauthorized,
+			Body:       err.Error(),
+		}, nil
+	}
+
+	retrievedUser, err := GetUser(getUserReq)
+	if err != nil {
+		apiError := err.(utils.APIError)
+
+		return events.APIGatewayProxyResponse{
+			StatusCode: apiError.Code,
+			Headers:    map[string]string{"Content-Type": "text/plain"},
+			Body:       apiError.Message,
+		}, nil
+	}
+
+	body, err := json.Marshal(GetUserResponse{
+		ID:    retrievedUser.ID,
+		Name:  retrievedUser.Name,
+		Email: retrievedUser.Email,
+	})
+
+	return events.APIGatewayProxyResponse{
+		StatusCode: 200,
+		Headers:    map[string]string{"Content-Type": "application/json"},
+		Body:       string(body),
+	}, nil
+}
+
 func UpdateUserHandler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	var updateUserReq UpdateUserRequest
 	if err := json.Unmarshal([]byte(request.Body), &updateUserReq); err != nil {
-		return parseFailureResponse(err)
+		return badRequestResponse(err)
+	}
+
+	if err := CheckToken(request.Headers["Authorization"], updateUserReq.ID); err != nil {
+		return events.APIGatewayProxyResponse{
+			StatusCode: http.StatusUnauthorized,
+		}, nil
 	}
 
 	updatedUser, err := UpdateUser(updateUserReq)
@@ -70,7 +119,13 @@ func UpdateUserHandler(request events.APIGatewayProxyRequest) (events.APIGateway
 func DeleteUserHandler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	var deleteUserReq DeleteUserRequest
 	if err := json.Unmarshal([]byte(request.Body), &deleteUserReq); err != nil {
-		return parseFailureResponse(err)
+		return badRequestResponse(err)
+	}
+
+	if err := CheckToken(request.Headers["Authorization"], deleteUserReq.ID); err != nil {
+		return events.APIGatewayProxyResponse{
+			StatusCode: http.StatusUnauthorized,
+		}, nil
 	}
 
 	deletedUser, err := DeleteUser(deleteUserReq)
@@ -97,7 +152,7 @@ func ValidateEmailHandler(request events.APIGatewayProxyRequest) (events.APIGate
 	var validateEmailReq ValidateEmailRequest
 	err := json.Unmarshal([]byte(request.Body), &validateEmailReq)
 	if err != nil {
-		return parseFailureResponse(err)
+		return badRequestResponse(err)
 	}
 
 	isEmailValid, err := ValidateEmail(validateEmailReq)
@@ -129,9 +184,37 @@ func PasswordStrengthHandler(request events.APIGatewayProxyRequest) (events.APIG
 	}, nil
 }
 
-func parseFailureResponse(err error) (events.APIGatewayProxyResponse, error) {
+func LoginHandler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	var creds Credential
+	if err := json.Unmarshal([]byte(request.Body), &creds); err != nil {
+		return badRequestResponse(err)
+	}
+
+	loginResult, err := Login(creds)
+	if err != nil {
+		return badRequestResponse(err)
+	}
+
+	body, _ := json.Marshal(loginResult)
+
 	return events.APIGatewayProxyResponse{
-		StatusCode: 400,
-		Body:       err.Error(),
+		Headers:    map[string]string{"Content-Type": "application/json"},
+		Body:       string(body),
+		StatusCode: 200,
+	}, nil
+}
+
+func LogoutHandler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	logoutResult, err := Logout(request.Headers["Authorization"])
+	if err != nil {
+		return badRequestResponse(err)
+	}
+
+	body, _ := json.Marshal(logoutResult)
+
+	return events.APIGatewayProxyResponse{
+		Headers:    map[string]string{"Content-Type": "application/json"},
+		Body:       string(body),
+		StatusCode: 200,
 	}, nil
 }

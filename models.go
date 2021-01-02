@@ -15,3 +15,10 @@ type User struct {
 	Email     string         `json:"email"`
 	Password  string         `json:"password"`
 }
+
+type InvalidToken struct {
+	CreatedAt time.Time      `json:"-"`
+	UpdatedAt time.Time      `json:"-"`
+	DeletedAt gorm.DeletedAt `sql:"index" json:"-"`
+	Token     string         `json:"token"`
+}

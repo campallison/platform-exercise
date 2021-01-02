@@ -16,5 +16,4 @@ func setup() {
 	os.Setenv("postgresURL", "postgres://root:postgres@localhost:5432/postgres?sslmode=disable")
 }
 
-func shutdown() {
-}
+func shutdown() {}

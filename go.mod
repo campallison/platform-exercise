@@ -5,6 +5,7 @@ go 1.15
 require (
 	github.com/aws/aws-lambda-go v1.21.0
 	github.com/aws/aws-sdk-go v1.36.18 // indirect
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/dlclark/regexp2 v1.4.0 // indirect
 	github.com/google/go-cmp v0.5.4
 	github.com/trustelem/zxcvbn v1.0.1

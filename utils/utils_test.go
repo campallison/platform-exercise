@@ -1,7 +1,6 @@
 package utils
 
 import (
-	errors2 "errors"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"

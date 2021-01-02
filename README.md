@@ -1,30 +1,51 @@
-# Fender Digital Platform Engineering Challenge
 
-## Description
 
-Design and implement a RESTful web service to facilitate a user authentication system. The authentication mechanism should be *token based*. Requests and responses should be in **JSON**.
+## Examples
+Note: if you have Python on your system you should be able to format the result by adding `| python -m json.tool` to the examples below.
 
-## Requirements
+**Create User**
 
-**Models**
+`curl -X POST 'http://127.0.0.1:1946/user' -d '{"name": "First Last", "email": "firstlast@domain.com", "password": "ArbitraryPassword%^&890"}' -v -H '{"Content-Type": "application/json"}'`
 
-The **User** model should have the following properties (at minimum):
+Result looks like:
+`{"email": "firstlast@domain.com", "id": <userID>,"name": "First Last"}`
 
-1. name
-2. email
-3. password
 
-You should determine what, *if any*, additional models you will need.
+**Log in as this user**
 
-**Endpoints**
+`curl -X POST http://127.0.0.1:1946/login -d '{"email":  "firstlast@domain.com", "password": "ArbitraryPassword%^&890"}'`
 
-All of these endpoints should be written from a user's perspective.
 
-1. **User** Registration
-2. Login (*token based*) - should return a token, given *valid* credentials
-3. Logout - logs a user out
-4. Update a **User**'s Information
-5. Delete a **User**
+**Get User**
+
+`curl GET 'http://127.0.0.1:1946/user/<userID>' -H "Authorization: bearer <token>"`
+
+
+**Update User**
+
+`curl PATCH 'http://127.0.0.1:1946/user' -d '{"name": "NewFirst NewLast", "email": "newfirstlast@newdomain.com"}' -v -H '{"Content-Type": "application/json", "Authorization": "bearer <token>"}'`
+
+
+**Delete User**
+
+`curl  DELETE http://127.0.0.1:1946/user -d '{"id":"<userID>"}' -v -H '{"content-type":"application/json", "authorization": "bearer <token>"}'`
+
+
+**Log out as this user**
+
+`curl -X POST http://127.0.0.1:1946/login -d '{"email":  "firstlast@domain.com", "password": "ArbitraryPassword%^&890"}'`
+
+**Check password strength**
+Should probably be something done on the front end with the zxcvbn package, but can be done like this.
+
+`curl -X POST http://127.0.0.1:1946/password-strength -d '<your choice of password goes here>' -v -H '{"content-type": "text/plain"}'`
+
+
+**Validate an email address**
+Intended for use on the front end to check the validity of the password before submitting.
+
+`curl -X POST http://127.0.0.1:1946/validate-email -d '{"email": <an email address to check>}' -v -H '{"content-type": "application/json"}'`
+
 
 **README**
 
@@ -34,14 +55,3 @@ Please include:
 - if you chose to use a database, include instructions on how to set that up
 - if you have tests, include instructions on how to run them
 - a description of what enhancements you might make if you had more time.
-
-**Additional Info**
-
-- We expect this project to take a few hours to complete
-- You can use Rails/Sinatra, Python, Go, node.js or shiny-new-framework X, as long as you tell us why you chose it and how it was a good fit for the challenge. 
-- Feel free to use whichever database you'd like; we suggest Postgres. 
-- Bonus points for security, specs, etc. 
-- Do as little or as much as you like.
-
-Please fork this repo and commit your code into that fork.  Show your work and process through those commits.
-
