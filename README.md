@@ -184,7 +184,7 @@ Intended for use on the front end to check the validity of the password before s
 
 ## Enhancements
 
-The first thing I would want to do is talk to the imaginary front end using this service and ensure that we're giving back the data they need in a way they'd like to read it. To that end, I'd probably want to set up a graphQL layer because that makes for a very pleasant front end development experience.
+The first thing I would want to do is talk to the imaginary front end using this service and ensure that we're returning the data they need in a way they'd like to read it. To that end, I'd probably want to set up a graphQL layer because that makes for a very pleasant front end development experience.
 
 While I'm pretty happy with how it turned out trying the AWS SAM structure, the next immediate enhancement would be to ask for review or collaboration from teammates with more experience and see what "gotchas" I may have naively missed, or what useful optimizations are available or baked into the SAM. Tough spot of course, because you don't know what you're missing until you know what you're missing.
 
