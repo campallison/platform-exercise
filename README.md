@@ -188,4 +188,4 @@ The first thing I would want to do is talk to the imaginary front end using this
 
 While I'm pretty happy with how it turned out trying the AWS SAM structure, the next immediate enhancement would be to ask for review or collaboration from teammates with more experience and see what "gotchas" I may have naively missed, or what useful optimizations are available or baked into the SAM. Tough spot of course, because you don't know what you're missing until you know what you're missing.
 
-On that note, I noticed that the build process, and separately the time it was taking to run the tests, was greater than I would have liked. I did not choose to spend time optimizing for speed yet.
+On that note, I noticed that the build process, and separately the time it was taking to run the tests, was greater than I would have liked. Next I may choose to investigate any slow spots both for development speed and user experience.
