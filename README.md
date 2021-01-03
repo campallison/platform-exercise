@@ -1,5 +1,5 @@
 # Platform Exercise
-###Discussion:
+### Discussion:
 This auth implementation is written in Go on an AWS SAM `sam init` template with a Postgres database. Because Fender's platform, to my understanding, operates on the serverless application model, I wanted to explore that a bit more. I wrote it in Go because it's what I've been using the past few years and a really excellent language overall.
 
 This service implements the required endpoints and a couple more just for fun, and perhaps a bit of utility. The database contains two tables: a `users` table and an `invalid_tokens` table, along with the migrations table. 
@@ -97,7 +97,7 @@ Go https://golang.org/dl/
 
 Postgres https://www.postgresql.org/download/
 
-**optional:** 
+**optional:**
 
 PGCLI https://www.pgcli.com/install
 
