@@ -119,10 +119,7 @@ func UpdateUserHandler(request events.APIGatewayProxyRequest) (events.APIGateway
 }
 
 func DeleteUserHandler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	var deleteUserReq DeleteUserRequest
-	if err := json.Unmarshal([]byte(request.Body), &deleteUserReq); err != nil {
-		return badRequestResponse(err)
-	}
+	deleteUserReq := DeleteUserRequest{ID: request.PathParameters["id"]}
 
 	if err := CheckToken(request.Headers["Authorization"], deleteUserReq.ID); err != nil {
 		return events.APIGatewayProxyResponse{

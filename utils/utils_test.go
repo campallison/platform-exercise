@@ -27,17 +27,17 @@ func Test_passwordStrength(t *testing.T) {
 		},
 		{
 			name: "Test guessable",
-			args: args{"!keRp@"},
+			args: args{"weak"},
 			want: 1,
 		},
 		{
 			name: "Test somewhat guessable",
-			args: args{"$h0rnSg4!"},
+			args: args{"HowAreYaNow"},
 			want: 3,
 		},
 		{
 			name: "Test secure",
-			args: args{"this is pretty ok"},
+			args: args{"oddly this is pretty ok"},
 			want: 4,
 		},
 		{
@@ -92,18 +92,18 @@ func Test_isKnownSpamEmail(t *testing.T) {
 		want  bool
 	}{
 		{
-			name:  "doesn't consider good domain spam",
+			name:  "respects legitimate domain",
 			input: Email{LocalPart: "leo", Domain: "fender.com"},
 			want:  false,
 		},
 		{
-			name:  "doesn't consider good domain spam",
+			name:  "respects legitimate domain",
 			input: Email{LocalPart: "sergey", Domain: "google.com"},
 			want:  false,
 		},
 		{
-			name:  "doesn't consider good domain spam",
-			input: Email{LocalPart: "leo", Domain: "tcell.io"},
+			name:  "respects legitimate domain",
+			input: Email{LocalPart: "leo", Domain: "protonmail.com"},
 			want:  false,
 		},
 		{
@@ -150,7 +150,7 @@ func Test_parseEmail(t *testing.T) {
 			expected: Email{LocalPart: "leo", Domain: "tcell.io"},
 		},
 		{
-			name:  "no localpart",
+			name:  "no local part",
 			input: "@fender.com",
 			err:   InvalidEmailError("@fender.com"),
 		},

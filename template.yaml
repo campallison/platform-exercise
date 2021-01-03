@@ -10,7 +10,7 @@ Globals:
     Timeout: 5
 Parameters:
   POSTGRES_URL:
-    Default: "Postgres url not set"
+    Default: ""
     Description: "Postgres url"
     Type: String
   SIGNING_SECRET:
@@ -32,6 +32,8 @@ Resources:
           Properties:
             Path: /user
             Method: POST
+      Policies:
+        - VPCAccessPolicy {}
       Environment:
         Variables:
           postgresURL: !Ref POSTGRES_URL
@@ -51,6 +53,8 @@ Resources:
             RequestParameters:
               - method.request.path.id:
                   Required: true
+      Policies:
+        - VPCAccessPolicy {}
       Environment:
         Variables:
           postgresURL: !Ref POSTGRES_URL
@@ -71,6 +75,8 @@ Resources:
             RequestParameters:
               - method.request.path.id:
                   Required: true
+      Policies:
+        - VPCAccessPolicy {}
       Environment:
         Variables:
           postgresURL: !Ref POSTGRES_URL
@@ -86,8 +92,13 @@ Resources:
         CatchAll:
           Type: Api
           Properties:
-            Path: /user
+            Path: /user/{id}
             Method: DELETE
+            RequestParameters:
+              - method.request.path.id:
+                  Required: true
+      Policies:
+        - VPCAccessPolicy {}
       Environment:
         Variables:
           postgresURL: !Ref POSTGRES_URL
@@ -105,6 +116,8 @@ Resources:
           Properties:
             Path: /login
             Method: POST
+      Policies:
+        - VPCAccessPolicy {}
       Environment:
         Variables:
           postgresURL: !Ref POSTGRES_URL
@@ -125,6 +138,8 @@ Resources:
             RequestParameters:
               - method.request.path.id:
                   Required: true
+      Policies:
+        - VPCAccessPolicy {}
       Environment:
         Variables:
           postgresURL: !Ref POSTGRES_URL
@@ -155,13 +170,3 @@ Resources:
           Properties:
             Path: /password-strength
             Method: POST
-Outputs:
-  HelloWorldAPI:
-    Description: "API Gateway endpoint URL for Prod environment for First Function"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/hello/"
-  HelloWorldFunction:
-    Description: "First Lambda Function ARN"
-    Value: !GetAtt HelloWorldFunction.Arn
-  HelloWorldFunctionIamRole:
-    Description: "Implicit IAM Role created for Hello World function"
-    Value: !GetAtt HelloWorldFunctionRole.Arn

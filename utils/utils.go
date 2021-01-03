@@ -9,6 +9,7 @@ import (
 )
 
 var (
+	bcryptGenerationCost   = 14
 	aliasRegexp            = regexp.MustCompile(`\+`)
 	emailRegexp            = regexp.MustCompile("(?i)([A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,24})")
 	prohibitedEmailDomains = []string{
@@ -79,7 +80,6 @@ func IsKnownSpamEmail(email Email) bool {
 }
 
 func ParseEmail(email string) (Email, error) {
-
 	if !emailRegexp.MatchString(email) {
 		return Email{}, InvalidEmailError(email)
 	}
@@ -91,10 +91,6 @@ func ParseEmail(email string) (Email, error) {
 	i := strings.LastIndex(email, "@")
 	return Email{LocalPart: email[:i], Domain: email[i+1:]}, nil
 }
-
-const (
-	bcryptGenerationCost int = 14
-)
 
 type Credential struct {
 	Hash   string `json:"-"`
