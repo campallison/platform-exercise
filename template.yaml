@@ -9,11 +9,11 @@ Globals:
   Function:
     Timeout: 5
 Parameters:
-  POSTGRES_URL:
+  PostgresURI:
     Default: ""
     Description: "Postgres url"
     Type: String
-  SIGNING_SECRET:
+  SigningSecret:
     Default: ""
     Description: "JWT token signing secret"
     Type: String
@@ -32,11 +32,9 @@ Resources:
           Properties:
             Path: /user
             Method: POST
-      Policies:
-        - VPCAccessPolicy {}
       Environment:
         Variables:
-          postgresURL: !Ref POSTGRES_URL
+          postgresURL: !Ref PostgresURI
   GetUserFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -53,12 +51,10 @@ Resources:
             RequestParameters:
               - method.request.path.id:
                   Required: true
-      Policies:
-        - VPCAccessPolicy {}
       Environment:
         Variables:
-          postgresURL: !Ref POSTGRES_URL
-          signing_secret: !Ref SIGNING_SECRET
+          postgresURL: !Ref PostgresURI
+          SigningSecret: !Ref SigningSecret
   UpdateUserFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -75,12 +71,10 @@ Resources:
             RequestParameters:
               - method.request.path.id:
                   Required: true
-      Policies:
-        - VPCAccessPolicy {}
       Environment:
         Variables:
-          postgresURL: !Ref POSTGRES_URL
-          signing_secret: !Ref SIGNING_SECRET
+          postgresURL: !Ref PostgresURI
+          SigningSecret: !Ref SigningSecret
   DeleteUserFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -97,12 +91,10 @@ Resources:
             RequestParameters:
               - method.request.path.id:
                   Required: true
-      Policies:
-        - VPCAccessPolicy {}
       Environment:
         Variables:
-          postgresURL: !Ref POSTGRES_URL
-          signing_secret: !Ref SIGNING_SECRET
+          postgresURL: !Ref PostgresURI
+          SigningSecret: !Ref SigningSecret
   LoginFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -116,12 +108,10 @@ Resources:
           Properties:
             Path: /login
             Method: POST
-      Policies:
-        - VPCAccessPolicy {}
       Environment:
         Variables:
-          postgresURL: !Ref POSTGRES_URL
-          signing_secret: !Ref SIGNING_SECRET
+          postgresURL: !Ref PostgresURI
+          SigningSecret: !Ref SigningSecret
   LogoutFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -138,12 +128,10 @@ Resources:
             RequestParameters:
               - method.request.path.id:
                   Required: true
-      Policies:
-        - VPCAccessPolicy {}
       Environment:
         Variables:
-          postgresURL: !Ref POSTGRES_URL
-          signing_secret: !Ref SIGNING_SECRET
+          postgresURL: !Ref PostgresURI
+          SigningSecret: !Ref SigningSecret
   ValidateEmailFunction:
     Type: AWS::Serverless::Function
     Properties:

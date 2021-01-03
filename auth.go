@@ -37,7 +37,7 @@ func Login(creds Credential) (LoginResponse, error) {
 			"Subject":   user.Email,
 		})
 
-		signedToken, err := unsignedToken.SignedString([]byte(os.Getenv("signing_secret")))
+		signedToken, err := unsignedToken.SignedString([]byte(os.Getenv("SigningSecret")))
 		if err != nil {
 			return response, utils.LoginFailedError()
 		}
@@ -99,7 +99,7 @@ func CheckToken(authHeader string, userID string) error {
 			return nil, utils.TokenSignatureError()
 		}
 
-		return []byte(os.Getenv("signing_secret")), nil
+		return []byte(os.Getenv("SigningSecret")), nil
 	})
 
 	if err != nil {

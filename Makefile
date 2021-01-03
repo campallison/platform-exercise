@@ -3,6 +3,9 @@
 build:
 	sam build
 
+clean:
+	rm -f $(wildcard .aws-sam/build/*/*)
+
 run-dev: init-db build dev-sam
 
 dev-sam:

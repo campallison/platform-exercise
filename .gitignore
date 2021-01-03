@@ -5,6 +5,7 @@
 *.so
 *.dylib
 .aws-sam/
+samconfig.toml
 
 # Test binary, built with `go test -c`
 *.test
