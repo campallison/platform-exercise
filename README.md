@@ -37,7 +37,7 @@ Indexes:
 Indexes:
     "invalid_tokens_pkey" PRIMARY KEY, btree (token)
 ```  
-Passwords are hashed with the commonly-used bcrypt package and of course only the hash is stored. The `invalid_tokens` table holds logged-out tokens.  All endpoint that require authorization check that the given token does not exist in the `invalid_tokens` table.
+Passwords are encrypted with the commonly-used bcrypt package and of course only the encrypted version is stored. The `invalid_tokens` table holds logged-out tokens.  All endpoint that require authorization check that the given token does not exist in the `invalid_tokens` table.
 
 
 **CreateUser**
