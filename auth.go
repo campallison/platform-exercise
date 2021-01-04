@@ -85,12 +85,12 @@ func CheckToken(authHeader string, userID string) error {
 		return err
 	}
 
-	invalidTokenCheck := isInvalidToken(tokenString)
-	if invalidTokenCheck == nil {
+	validTokenCheck := isValidToken(tokenString)
+	if validTokenCheck == nil {
 		return utils.TokenCheckFailedError()
 	}
 
-	if *invalidTokenCheck == false {
+	if *validTokenCheck == false {
 		return utils.InvalidTokenError()
 	}
 
@@ -127,7 +127,7 @@ func getTokenFromAuthHeader(authHeader string) (string, error) {
 	return tokenString, nil
 }
 
-func isInvalidToken(token string) *bool {
+func isValidToken(token string) *bool {
 	db := Init()
 	var invalidToken InvalidToken
 

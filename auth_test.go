@@ -6,10 +6,6 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
-func Test_LoginTest(t *testing.T) {
-
-}
-
 func Test_CheckPassword(t *testing.T) {
 	cases := []struct {
 		name     string
