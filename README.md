@@ -52,7 +52,7 @@ Returns user ID, name, and email. ID is useful for `GET` requests
 
 **UpdateUser**
 
-`PATCH /user/{id}` endpoint, accepts the user ID in the path and requires an authorization header with a valid token, as well as a JSON request body with any or all of the following: name, email, old password + new password. If a new password is provided, the old password must be present and is checked against the stored hash using bcrypt's built-in tools since its hashing algorithms are nondeterministic. New password is checked for strength.
+`PATCH /user/{id}` endpoint, accepts the user ID in the path and requires an authorization header with a valid token, as well as a JSON request body with any or all of the following: name, email, old password + new password. If a new password is provided, the old password must be present and is checked against the stored, encrypted password, using bcrypt's built-in tools since its encryption algorithms are nondeterministic. New password is checked for strength.
 
 Returns ID, name, and email for the user, with new values for whichever fields were updated.
 
@@ -176,10 +176,18 @@ Should probably be something done on the front end with the zxcvbn package, but 
 `curl -X POST http://127.0.0.1:1946/password-strength -d '<your choice of password goes here>' -v -H '{"content-type": "text/plain"}'`
 
 
+To check on prod without running locally:
+
+`curl -X POST https://3m0dnwmyy1.execute-api.us-west-1.amazonaws.com/Prod/password-strength -d '{"password": "CorrectHorseBatteryStaple!!23"}' -v -H '{"content-type": "application/json"}'`
+
 **Validate an email address**
 Intended for use on the front end to check the validity of the password before submitting.
 
 `curl -X POST http://127.0.0.1:1946/validate-email -d '{"email": <an email address to check>}' -v -H '{"content-type": "application/json"}'`
+
+To check on prod without running locally:
+
+`curl -X POST https://3m0dnwmyy1.execute-api.us-west-1.amazonaws.com/Prod/validate-email -d '{"email": "arbitraryusername@gmail.com"}' -v -H '{"content-type": "application/json"}'`
 
 
 ## Enhancements

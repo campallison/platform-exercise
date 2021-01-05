@@ -2,6 +2,7 @@ package platform_exercise
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -22,6 +23,7 @@ func unauthorizedResponse() (events.APIGatewayProxyResponse, error) {
 }
 
 func CreateUserHandler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	log.Printf("In CreateUserHandler, request body:\n%v\n", request.Body)
 	var createUserReq CreateUserRequest
 	if err := json.Unmarshal([]byte(request.Body), &createUserReq); err != nil {
 		return badRequestResponse(err)
